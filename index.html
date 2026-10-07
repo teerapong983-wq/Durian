@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมุดสวนทุเรียน</title>
+<meta name="description" content="สมุดบันทึกสวนทุเรียน: ทะเบียนต้น ปฏิทินงาน ดอก-ผล โรค-แมลง บัญชี และแบบบันทึก GAP">
+<meta name="theme-color" content="#2F5D3A" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C241C" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="สมุดสวน">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Sarabun:wght@400;600&display=swap">
+<style>
+/* Layout: field notebook — sidebar on desktop, bottom tab bar on phone; husk-green ground, flesh-gold highlight */
+:root{
+  --bg:#F3F4EC; --surface:#FFFFFF; --sunk:#E9EBDF; --line:#D6D9C8;
+  --fg:#1F2A1E; --muted:#5E6A5A; --accent:#2F5D3A; --accent-ink:#FFFFFF; --gold:#C99A1C; --gold-soft:#F6E7B8;
+  --ok:#2E7D4A; --warn:#B7791F; --bad:#B23A2E; --info:#2F6690;
+  --t-fert:#2E7D4A; --t-spray:#7A4E9E; --t-water:#2F6690; --t-prune:#8A5A33; --t-fruit:#B7791F; --t-harvest:#C99A1C; --t-check:#5E6A5A;
+  --f-display:"Mitr","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141A14; --surface:#1C241C; --sunk:#232D22; --line:#34402F;
+  --fg:#E6EADF; --muted:#A3AE9C; --accent:#7FB88B; --accent-ink:#0F1A10; --gold:#E3B947; --gold-soft:#3A3219;
+  --ok:#6FC08A; --warn:#E0A54A; --bad:#E57A6C; --info:#7FB2DA;
+  --t-fert:#6FC08A; --t-spray:#B993DA; --t-water:#7FB2DA; --t-prune:#C99B72; --t-fruit:#E0A54A; --t-harvest:#E3B947; --t-check:#A3AE9C;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141A14; --surface:#1C241C; --sunk:#232D22; --line:#34402F;
+  --fg:#E6EADF; --muted:#A3AE9C; --accent:#7FB88B; --accent-ink:#0F1A10; --gold:#E3B947; --gold-soft:#3A3219;
+  --ok:#6FC08A; --warn:#E0A54A; --bad:#E57A6C; --info:#7FB2DA;
+  --t-fert:#6FC08A; --t-spray:#B993DA; --t-water:#7FB2DA; --t-prune:#C99B72; --t-fruit:#E0A54A; --t-harvest:#E3B947; --t-check:#A3AE9C;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+html{padding-top:env(safe-area-inset-top,0px)}
+.setup{max-width:520px;margin:40px auto;display:flex;flex-direction:column;gap:14px}
+.setup .fld input{font-family:var(--f-num);font-size:.85rem}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body);}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;margin:0;text-wrap:balance;line-height:1.25}
+h1{font-size:1.5rem} h2{font-size:1.15rem} h3{font-size:1rem}
+.app{display:flex;min-height:100%}
+nav.side{display:none}
+main{flex:1;min-width:0;padding:16px 16px calc(84px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.brand{display:flex;flex-direction:column}
+.brand small{color:var(--muted);font-size:.8rem}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;cursor:pointer}
+.iconbtn svg{width:20px;height:20px}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:4px 2px env(safe-area-inset-bottom,0px);z-index:10}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.68rem;color:var(--muted);cursor:pointer;border-radius:8px}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="true"]{color:var(--accent);font-weight:600}
+@media (min-width:900px){
+  nav.bottom{display:none}
+  nav.side{display:flex;flex-direction:column;gap:4px;width:220px;flex:none;padding:24px 12px;border-right:1px solid var(--line);background:var(--surface);position:sticky;top:0;height:100vh}
+  nav.side .tab{flex-direction:row;font-size:.95rem;padding:10px 12px;gap:10px;justify-content:flex-start}
+  nav.side .tab[aria-current="true"]{background:var(--sunk)}
+  nav.side .logo{font-family:var(--f-display);font-size:1.1rem;padding:4px 12px 18px;color:var(--accent)}
+  main{padding:28px 32px 40px}
+}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:4px 10px;font-size:.85rem}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:16px;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer;display:grid;place-items:center;z-index:9}
+.fab svg{width:26px;height:26px}
+@media (min-width:900px){.fab{bottom:28px;right:32px}}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:700px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--f-num);font-size:1.6rem;font-weight:500;line-height:1.2}
+.kpi span{color:var(--muted);font-size:.82rem}
+.kpi.hl{background:var(--gold-soft);border-color:transparent}
+.grid2{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel>header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.list{display:flex;flex-direction:column}
+.row{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);cursor:pointer;min-width:0}
+.row:first-child{border-top:0}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:500;overflow-wrap:anywhere}
+.row .s{color:var(--muted);font-size:.84rem;overflow-wrap:anywhere}
+.row .r{text-align:right;flex:none;font-size:.85rem}
+.stripe{width:4px;align-self:stretch;border-radius:2px;flex:none}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:.75rem;font-weight:500;border:1px solid currentColor;white-space:nowrap}
+.p-ok{color:var(--ok)} .p-warn{color:var(--warn)} .p-bad{color:var(--bad)} .p-mute{color:var(--muted)} .p-gold{color:var(--gold)} .p-info{color:var(--info)}
+.ex{font-size:.7rem;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 5px;margin-left:6px;font-weight:400}
+.empty{color:var(--muted);padding:14px 0;font-size:.9rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar select,.toolbar input{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.plots{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.plot{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left}
+.plot .hb{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--sunk);margin-top:4px}
+.bar{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:4px}
+.bar.done i{background:var(--ok)}
+.bloom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.bloom:first-child{border-top:0}
+.bloom .bar{grid-column:1/-1}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:.75rem;color:var(--muted);text-align:center;padding:2px 0}
+.cell{min-height:58px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px;cursor:pointer;display:flex;flex-direction:column;gap:3px;text-align:left}
+.cell.out{opacity:.4}
+.cell.today{border-color:var(--accent);border-width:2px}
+.cell.sel{background:var(--gold-soft)}
+.cell .d{font-family:var(--f-num);font-size:.8rem}
+.dots{display:flex;flex-wrap:wrap;gap:3px}
+.dots i{width:7px;height:7px;border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:50%}
+.chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex:none;display:grid;place-items:center;background:var(--surface);cursor:pointer;padding:0}
+.chk.on{background:var(--ok);border-color:var(--ok);color:var(--accent-ink)}
+.chk svg{width:14px;height:14px}
+.cats{display:flex;flex-direction:column;gap:8px}
+.cat{display:grid;grid-template-columns:7.5em minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.88rem}
+.cat .bar i{background:var(--accent)}
+.banner{background:var(--gold-soft);border-radius:var(--r);padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.9rem}
+.note{color:var(--muted);font-size:.82rem}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,15,10,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:700px){.scrim{align-items:center}}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+@media (min-width:700px){.sheet{border-radius:16px}}
+.sheet form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld.full{grid-column:1/-1}
+.fld label{font-size:.82rem;color:var(--muted)}
+.fld input,.fld select,.fld textarea{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+.fld textarea{min-height:70px;resize:vertical}
+.actions{grid-column:1/-1;display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding-top:4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:8px;z-index:30;font-size:.9rem}
+.skel{color:var(--muted);padding:30px 0;text-align:center}
+.fld .hint{font-size:.78rem;color:var(--muted);margin-top:-2px}
+.checks .row{cursor:default}
+.secs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem}
+.secs label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.docwrap{background:var(--sunk);border-radius:var(--r);padding:16px;overflow-x:auto}
+.tab span{white-space:nowrap}
+.row[data-act="edit"],.row[data-act="tree"],.bloom[data-act="edit"],.tl .ev{position:relative;padding-right:30px;border-radius:6px}
+.row[data-act="edit"]::after,.row[data-act="tree"]::after,.bloom[data-act="edit"]::after,.tl .ev::after{content:"";position:absolute;right:6px;top:50%;width:16px;height:16px;margin-top:-8px;opacity:.45;
+  background:var(--muted);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z'/%3E%3C/svg%3E") center/contain no-repeat}
+.row[data-act="tree"]::after{opacity:.35}
+@media (hover:hover){.row[data-act="edit"]:hover,.row[data-act="tree"]:hover,.bloom[data-act="edit"]:hover,.tl .ev:hover{background:var(--sunk)}}
+.row[data-act="edit"]:active,.row[data-act="tree"]:active,.bloom[data-act="edit"]:active,.tl .ev:active{background:var(--sunk)}
+.edithint{font-size:.78rem;color:var(--muted);margin:0}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.mitem{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;text-decoration:none;color:var(--fg);font-weight:500}
+.mitem svg{width:26px;height:26px;color:var(--accent)}
+.cbox{position:relative;height:240px;min-width:0}
+.dgrid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpis6{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:700px){.kpis6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1100px){.kpis6{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.tblwrap{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:.88rem}
+table.dt th,table.dt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.dt th:first-child,table.dt td:first-child{text-align:left}
+table.dt th{color:var(--muted);font-weight:500;font-size:.8rem}
+.sync{background:var(--gold-soft);border-radius:var(--r);padding:8px 14px;font-size:.85rem}
+body.printmode{background:#e9ebe4}
+body.printmode nav,body.printmode .fab{display:none!important}
+body.printmode main{padding:0}
+body.printmode .wrap{max-width:none;gap:0}
+.pbar{position:sticky;top:0;background:#2F5D3A;color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;z-index:2;flex-wrap:wrap}
+.pbar button{font:inherit;padding:6px 18px;border-radius:6px;border:0;background:#fff;color:#2F5D3A;font-weight:600;cursor:pointer}
+body.printmode .doc{padding:16px 0;overflow-x:auto}
+@page{size:A4 landscape;margin:9mm}
+@media print{body.printmode{background:#fff}.pbar{display:none!important}body.printmode .doc{padding:0}.doc .page{width:auto!important;min-height:188mm;box-shadow:none!important;padding:0!important;margin:0!important;break-after:page}.doc .page:last-child{break-after:auto}.doc thead{display:table-header-group}.doc tr{break-inside:avoid}.doc th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.thumbs,.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.thumb{position:relative;aspect-ratio:1;max-width:100%;border-radius:8px;overflow:hidden;background:var(--sunk);border:1px solid var(--line);padding:0;cursor:pointer}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .x{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;line-height:24px;padding:0}
+.thumb .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;font-size:.7rem;padding:10px 5px 3px;text-align:left}
+.thumb.busy{display:grid;place-items:center;color:var(--muted);font-size:.75rem}
+.rowthumb{width:46px;height:46px;border-radius:8px;object-fit:cover;flex:none;background:var(--sunk)}
+.sizes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.sizes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sizes div{background:var(--sunk);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column}
+.sizes b{font-family:var(--f-num);font-weight:500;font-size:1.2rem}
+.sizes span{font-size:.75rem;color:var(--muted)}
+.chart svg{width:100%;height:auto;display:block}
+.tl{display:flex;flex-direction:column}
+.tl .ev{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
+.tl .ev:first-child{border-top:0}
+.tl .ev .d{font-family:var(--f-num);font-size:.8rem;color:var(--muted)}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px}
+.lb img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:6px}
+.lb .bar2{display:flex;gap:10px;color:#fff;align-items:center}
+.lb button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app">
+  <nav class="side" id="side"></nav>
+  <main><div class="wrap" id="view"><div class="skel">กำลังเปิดสมุดสวน…</div></div></main>
+</div>
+<nav class="bottom" id="bottom"></nav>
+<button class="fab" id="fab" aria-label="เพิ่มรายการ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<div id="modal"></div>
+<div id="toast" class="toast" hidden></div>
+<div id="lb"></div>
+
+<script>
+/* แสดงข้อผิดพลาดบนหน้าจอ เพื่อให้รู้สาเหตุเมื่อแอปไม่ขึ้น */
+window.__showErr=function(msg){var v=document.getElementById('view');if(!v)return;
+  v.innerHTML='<div class="panel" style="border-color:var(--bad)"><h2 style="color:var(--bad)">แอปเปิดไม่สำเร็จ</h2><p style="margin:0">ส่งข้อความด้านล่างนี้ให้ผู้พัฒนา</p><pre style="white-space:pre-wrap;font-size:.8rem;background:var(--sunk);padding:10px;border-radius:8px;margin:0">'+String(msg).replace(/[&<]/g,function(c){return c==='&'?'&amp;':'&lt;'})+'</pre><button class="btn" onclick="location.reload()">โหลดใหม่</button></div>';};
+window.addEventListener('error',function(e){if(e&&e.message&&!window.__appReady)window.__showErr(e.message+(e.lineno?' (บรรทัด '+e.lineno+')':''));});
+</script>
+<script>
+(function(){
+"use strict";
+/* ---------- constants ---------- */
+const VARIETIES=['หมอนทอง','ชะนี','ก้านยาว','พวงมณี','กระดุม','มูซังคิง','หลงลับแล','หนามดำ','อื่นๆ'];
+const DEF_DAYS={'หมอนทอง':125,'ชะนี':105,'ก้านยาว':125,'พวงมณี':95,'กระดุม':95,'มูซังคิง':110,'หลงลับแล':110,'หนามดำ':110,'อื่นๆ':120};
+const HEALTH={ok:['ปกติ','p-ok','var(--ok)'],watch:['เฝ้าระวัง','p-warn','var(--warn)'],sick:['ป่วย','p-bad','var(--bad)'],dead:['ตาย/ตัดทิ้ง','p-mute','var(--muted)']};
+const TASKT={fert:['ใส่ปุ๋ย','--t-fert'],spray:['ฉีดพ่นยา/ฮอร์โมน','--t-spray'],water:['ให้น้ำ','--t-water'],prune:['ตัดแต่งกิ่ง','--t-prune'],fruit:['ตัดแต่งผล/โยงกิ่ง','--t-fruit'],harvest:['เก็บเกี่ยว','--t-harvest'],check:['ตรวจสวน/อื่นๆ','--t-check']};
+const BSTAT={dev:['กำลังพัฒนา','p-gold'],done:['เก็บแล้ว','p-ok'],lost:['ร่วง/เสียหาย','p-mute']};
+const PESTS=['รากเน่าโคนเน่า (ไฟทอปธอรา)','ใบติด','ใบจุดสาหร่าย','ผลเน่า','เพลี้ยไก่แจ้','เพลี้ยแป้ง','เพลี้ยไฟ','ไรแดง','หนอนเจาะผล','หนอนเจาะเมล็ด','ด้วง/มอดเจาะลำต้น','อื่นๆ'];
+const SEV={low:['ต่ำ','p-info','var(--info)'],mid:['ปานกลาง','p-warn','var(--warn)'],high:['รุนแรง','p-bad','var(--bad)']};
+const EXP=['ปุ๋ย','ยา/สารเคมี','ค่าแรง','น้ำ/ไฟ/น้ำมัน','อุปกรณ์/ซ่อมบำรุง','ค่าขนส่ง','อื่นๆ'];
+const INC=['ขายทุเรียน','รายรับอื่นๆ'];
+const COLS=['plots','trees','tasks','blooms','pests','finance','trainings','treelogs'];
+const BANNED=/พาราคว[อ]?[ตท]|paraquat|คลอร์ไพริฟอส|chlorpyrifos/i;
+const GAPCHK=[
+ ['น้ำ','แหล่งน้ำไม่อยู่ในสภาพแวดล้อมที่ก่อให้เกิดการปนเปื้อน มีผลวิเคราะห์คุณภาพน้ำเมื่อมีความเสี่ยง'],
+ ['พื้นที่ปลูก','พื้นที่ไม่มีวัตถุอันตรายหรือสิ่งปนเปื้อนตกค้าง มีการประเมินความเสี่ยงและข้อมูลประวัติแปลง'],
+ ['วัตถุอันตรายทางการเกษตร','ใช้สารที่ขึ้นทะเบียนตามฉลาก ไม่ใช้สารห้ามใช้ เก็บสารเป็นสัดส่วนปลอดภัย และบันทึกการใช้ทุกครั้ง'],
+ ['การจัดการคุณภาพก่อนเก็บเกี่ยว','มีแผนควบคุมการผลิต ปัจจัยการผลิตมีแหล่งที่มาชัดเจน และบันทึกการใช้ปุ๋ย'],
+ ['การเก็บเกี่ยวและการปฏิบัติหลังเก็บเกี่ยว','เก็บเกี่ยวผลที่แก่ตามอายุ พ้นระยะเว้นของสาร อุปกรณ์และภาชนะสะอาด ไม่วางผลสัมผัสดินโดยตรง'],
+ ['การพักผลิตผล การขนย้าย และการเก็บรักษา','สถานที่พักผลสะอาด ป้องกันสัตว์และสิ่งปนเปื้อน พาหนะขนย้ายสะอาด'],
+ ['บุคลากร','ผู้ปฏิบัติงานมีความรู้ ได้รับการอบรม มีสุขลักษณะส่วนบุคคลที่ดี และใช้อุปกรณ์ป้องกันขณะใช้สาร'],
+ ['การบันทึกข้อมูลและการตามสอบ','บันทึกครบถ้วน ตามสอบผลผลิตย้อนกลับถึงแปลงได้ และทบทวนการปฏิบัติอย่างน้อยปีละครั้ง']];
+const CHK={pass:['ปฏิบัติได้','p-ok'],fix:['ต้องปรับปรุง','p-bad'],na:['ไม่เกี่ยวข้อง','p-mute']};
+const ICON={
+ home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ trees:'<path d="M12 21v-6M12 15c-4 0-7-2.5-7-6a7 7 0 0 1 14 0c0 3.5-3 6-7 6z"/><path d="M9 21h6"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ harvest:'<path d="M12 3c4 2 7 6 7 10a7 7 0 0 1-14 0c0-4 3-8 7-10z"/><path d="M9 11l1.5 1.5M14 9l1 1.5M10 16l1 1M15 14l1 1"/>',
+ pest:'<ellipse cx="12" cy="14" rx="4.5" ry="6"/><path d="M12 8V5M9 4l1.5 2M15 4l-1.5 2M7.5 12H4M7.5 16H4.5M16.5 12H20M16.5 16h3"/>',
+ money:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9.5v.01M18 14.5v.01"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+ check:'<path d="M5 12l5 5 9-10"/>',
+ doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ more:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+ sheet:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/>'
+};
+const svg=(n,sw=1.8)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
+const TABS=[['home','ภาพรวม','home'],['dash','แดชบอร์ด','chart'],['trees','ต้น/แปลง','trees'],['cal','ปฏิทิน','cal'],['harvest','ดอก-ผล','harvest'],['pest','โรค-แมลง','pest'],['money','บัญชี','money'],['gap','GAP','doc']];
+const BOTTOM=['home','trees','cal','harvest'];
+const FAB_COL={home:'tasks',trees:'trees',cal:'tasks',harvest:'blooms',pest:'pests',money:'finance',gap:'trainings'};
+
+/* ---------- state ---------- */
+const S={plots:[],trees:[],tasks:[],blooms:[],pests:[],finance:[],trainings:[],treelogs:[],gap:{},settings:{orchardName:'สวนทุเรียน',days:{...DEF_DAYS}}};
+const ENV={page:'',params:{},appUrl:'',sheetUrl:''};
+let PRINT=false;
+let mode='loading', assets=true, modalBack=null, modalCleanup=null;
+const blob=id=>'https://lh3.googleusercontent.com/d/'+id+'=w1000';
+const PHC={};
+document.addEventListener('error',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||im.dataset.fb)return;const m=String(im.src).match(/googleusercontent\.com\/d\/([^=]+)=/);if(!m)return;im.dataset.fb=1;
+  const id=m[1];const put=u=>{PHC[id]=u;document.querySelectorAll('img').forEach(x=>{if(x.src.includes('/d/'+id+'=')){x.dataset.fb=1;x.src=u}})};
+  if(PHC[id]){put(PHC[id]);return} run('getPhotoData',id).then(put).catch(()=>{});},true);
+const toDataURL=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)});
+const trash=ids=>{ids=(ids||[]).filter(Boolean);if(ids.length)enqueue('trashPhotos',[ids])};
+const logsOf=tid=>S.treelogs.filter(l=>l.treeId===tid).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+const lastSize=(tid,k)=>{const L=logsOf(tid).filter(l=>l[k]!=null&&l[k]!=='');return L.length?L[L.length-1]:null};
+const lastPhoto=tid=>{const L=logsOf(tid).filter(l=>l.photos&&l.photos.length);return L.length?L[L.length-1].photos[0]:null};
+async function shrink(file){
+  try{const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});const s=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+    const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+    const b=await new Promise(r=>c.toBlob(r,'image/jpeg',0.82));return b||file;}catch(e){return file}
+}
+const loaded={};
+const UI={view:'home',dy:new Date().getFullYear(),plot:'',health:'',pestF:'open',bloomF:'dev',year:new Date().getFullYear(),
+  gFrom:new Date().getFullYear()+'-01-01',gTo:new Date().getFullYear()+'-12-31',gSec:new Set(['profile','spray','fert','other','pest','buy','harvest','train','check']),blank:false,calY:new Date().getFullYear(),calM:new Date().getMonth(),sel:null};
+try{const v=localStorage.getItem('durian.view');if(v&&TABS.some(t=>t[0]===v))UI.view=v}catch(e){}
+const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))UI.view=h;
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const z=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());
+const pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const today=()=>iso(new Date());
+const addDays=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return iso(d)};
+const diff=(a,b)=>Math.round((pd(b)-pd(a))/864e5);
+const fmtD=s=>s?pd(s).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'—';
+const baht=n=>Math.round(n||0).toLocaleString('th-TH');
+const kg=n=>(+n||0).toLocaleString('th-TH',{maximumFractionDigits:1});
+const byId=(c,id)=>S[c].find(x=>x.id===id);
+const plotName=id=>id?(byId('plots',id)?.name||'—'):'ทุกแปลง';
+const treeCode=id=>byId('trees',id)?.code||'';
+const daysFor=v=>+(S.settings.days?.[v])||DEF_DAYS[v]||120;
+const bVariety=b=>b.variety||byId('trees',b.treeId)?.variety||'หมอนทอง';
+const dueOf=b=>b.bloomDate?addDays(b.bloomDate,daysFor(bVariety(b))):null;
+const BE=y=>y+543;
+const lotOf=(plotId,d)=>`${byId('plots',plotId)?.code||'P'}-${(d||today()).replace(/-/g,'').slice(2)}`;
+const sprayOn=(t,plotId)=>t.type==='spray'&&t.status==='done'&&(!t.plotId||t.plotId===plotId);
+function phiConflict(b){
+  if(b.status!=='done'||!b.harvestDate)return null;
+  return S.tasks.find(t=>sprayOn(t,b.plotId)&&+t.phi>0&&t.date<=b.harvestDate&&addDays(t.date,+t.phi)>b.harvestDate)||null;
+}
+const isBanned=t=>BANNED.test((t.product||'')+' '+(t.ai||''));
+const exTag=r=>r.example?'<span class="ex">ตัวอย่าง</span>':'';
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2400)}
+
+/* ---------- storage: Google Sheet ผ่าน Apps Script พร้อมคิวกรณีสัญญาณหลุด ---------- */
+const API={url:'',key:''};
+try{Object.assign(API,JSON.parse(localStorage.getItem('durian.api')||'{}'))}catch(e){}
+const run=async(fn,...args)=>{
+  if(!API.url||!API.key) throw new Error('NotConfigured');
+  let r;
+  try{ r=await fetch(API.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({key:API.key,fn,args})}); }
+  catch(e){ throw new Error('NetworkError: '+(e&&e.message||e)); }
+  let j; try{ j=await r.json(); }catch(e){ throw new Error('คำตอบจากเซิร์ฟเวอร์ไม่ใช่ JSON (HTTP '+r.status+') ตรวจว่าทำให้ใช้งานได้เป็น "ทุกคน" และ URL ลงท้ายด้วย /exec'); }
+  if(!j.ok) throw new Error(j.error||'ผิดพลาด');
+  return j.result;
+};
+const isNet=e=>/network|connection|HTTP 0|offline|failed to fetch|timed? ?out|load failed/i.test(String((e&&e.message)||e));
+let Q=[];try{Q=JSON.parse(localStorage.getItem('durian.q')||'[]')}catch(e){}
+const saveQ=()=>{try{localStorage.setItem('durian.q',JSON.stringify(Q))}catch(e){}};
+const cache=()=>{try{const c={};COLS.forEach(k=>c[k]=S[k]);c.gap=S.gap;c.settings=S.settings;c.env={appUrl:ENV.appUrl,sheetUrl:ENV.sheetUrl};localStorage.setItem('durian.cache',JSON.stringify(c))}catch(e){}};
+function enqueue(fn,args){Q.push({fn,args});saveQ();cache();updSync();flush();}
+let flushing=false;
+async function flush(){
+  if(flushing||!Q.length)return; flushing=true;
+  while(Q.length){ const op=Q[0];
+    try{ await run(op.fn,...op.args); Q.shift(); saveQ(); }
+    catch(e){ if(isNet(e))break; Q.shift(); saveQ(); toast('บันทึกลง Sheet ไม่สำเร็จ: '+((e&&e.message)||e)); } }
+  flushing=false; updSync();
+}
+function updSync(){const el=$('#sync');if(!el)return;el.hidden=!Q.length;el.textContent=`รอส่งข้อมูลขึ้น Google Sheet ${Q.length} รายการ · จะส่งให้อัตโนมัติเมื่อมีสัญญาณ`;}
+window.addEventListener('online',flush); setInterval(()=>{if(Q.length)flush()},20000);
+const newId=col=>col.slice(0,2)+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function upsert(col,r){const i=S[col].findIndex(x=>x.id===r.id);if(i>=0)S[col][i]=r;else S[col].push(r)}
+async function save(col,rec,keepEx){
+  const data={...rec}; if(!keepEx) delete data.example; data.updatedAt=Date.now(); if(!data.id) data.id=newId(col);
+  Object.keys(data).forEach(k=>{if(data[k]===undefined)delete data[k]});
+  upsert(col,data); render(); enqueue('saveRecord',[col,data]);
+  toast(navigator.onLine===false?'บันทึกในเครื่องแล้ว จะส่งขึ้น Sheet เมื่อมีสัญญาณ':'บันทึกแล้ว');
+  return data;
+}
+async function patch(col,id,fields){ const r=byId(col,id); if(!r)return; await save(col,{...r,...fields},true); }
+async function remove(col,id){ S[col]=S[col].filter(x=>x.id!==id); render(); enqueue('removeRecord',[col,id]); toast('ลบแล้ว'); }
+async function saveGap(g){ g={...g}; delete g.updatedAt; S.gap=g; render(); enqueue('saveConfig',['gap',g]); toast('บันทึกแล้ว'); }
+async function saveSettings(s){ S.settings=s; render(); enqueue('saveConfig',['settings',s]); toast('บันทึกการตั้งค่าแล้ว'); }
+function apply(d){
+  if(d.env)Object.assign(ENV,d.env);
+  COLS.forEach(c=>S[c]=Array.isArray(d[c])?d[c]:[]);
+  S.gap=d.gap||{};
+  S.settings={orchardName:(d.settings&&d.settings.orchardName)||'สวนทุเรียน',days:{...DEF_DAYS,...((d.settings&&d.settings.days)||{})}};
+  Q.forEach(op=>{ const [a1,a2]=op.args;
+    if(op.fn==='saveRecord')upsert(a1,a2); else if(op.fn==='removeRecord')S[a1]=S[a1].filter(x=>x.id!==a2);
+    else if(op.fn==='saveConfig'){ if(a1==='gap')S.gap=a2; else S.settings={...S.settings,...a2}; } });
+}
+let lastLoad=0;
+async function load(manual){
+  try{ const d=await run('getAll'); apply(d); mode='ready'; lastLoad=Date.now(); cache(); if(manual)toast('โหลดข้อมูลล่าสุดจาก Sheet แล้ว'); }
+  catch(e){ if(/NotConfigured|คีย์ไม่ถูกต้อง/.test(String(e&&e.message))){mode='setup';render();return} window.__lastErr=String((e&&e.message)||e); if(mode==='loading'){mode='error';console.error(e);} toast(isNet(e)?'ไม่มีสัญญาณ ใช้ข้อมูลที่บันทึกในเครื่องไปก่อน':'โหลดข้อมูลไม่สำเร็จ: '+((e&&e.message)||e)); }
+  render(); flush();
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-lastLoad>5*60e3&&!Q.length&&!$('#modal').innerHTML)load()});
+
+/* ---------- form schemas ---------- */
+const optPlots=(blank)=>[...(blank?[['',blank]]:[]),...S.plots.map(p=>[p.id,p.name])];
+const optTrees=v=>[['','— ไม่ระบุต้น (ทั้งชุด/ทั้งแปลง) —'],...S.trees.filter(t=>!v.plotId||t.plotId===v.plotId).filter(t=>t.health!=='dead').sort((a,b)=>String(a.code).localeCompare(String(b.code),'th',{numeric:true})).map(t=>[t.id,t.code+' · '+t.variety])];
+const arr=a=>a.map(x=>[x,x]);
+const FORMS={
+ plots:{title:'แปลง',fields:[
+  {k:'code',l:'รหัสแปลง',t:'text',ph:'เช่น A',hint:'ใช้นำหน้ารหัสล็อตเก็บเกี่ยว'},
+  {k:'name',l:'ชื่อแปลง',t:'text',req:1,ph:'เช่น แปลง A หน้าบ้าน'},
+  {k:'areaRai',l:'พื้นที่ (ไร่)',t:'number',step:'0.25'},
+  {k:'treesPlanned',l:'จำนวนต้นตามผัง',t:'number'},
+  {k:'note',l:'หมายเหตุ (ดิน ระบบน้ำ ฯลฯ)',t:'textarea',full:1}]},
+ trees:{title:'ต้นทุเรียน',fields:[
+  {k:'code',l:'รหัสต้น',t:'text',req:1,ph:'เช่น A-01'},
+  {k:'plotId',l:'แปลง',t:'select',opts:()=>optPlots(),req:1},
+  {k:'variety',l:'พันธุ์',t:'select',opts:()=>arr(VARIETIES),def:'หมอนทอง'},
+  {k:'plantYear',l:'ปีที่ปลูก (พ.ศ.)',t:'number',ph:String(BE(new Date().getFullYear())-5)},
+  {k:'health',l:'สุขภาพต้น',t:'select',opts:()=>Object.entries(HEALTH).map(([k,v])=>[k,v[0]]),def:'ok',full:1},
+  {k:'note',l:'บันทึก',t:'textarea',full:1}]},
+ tasks:{title:'งานในสวน',fields:[
+  {k:'date',l:'วันที่',t:'date',req:1,def:()=>UI.sel||today()},
+  {k:'type',l:'ประเภทงาน',t:'select',opts:()=>Object.entries(TASKT).map(([k,v])=>[k,v[0]]),def:'fert'},
+  {k:'title',l:'งาน',t:'text',req:1,ph:'เช่น ใส่ปุ๋ยสูตร 8-24-24',full:1},
+  {k:'plotId',l:'แปลง',t:'select',opts:()=>optPlots('ทุกแปลง')},
+  {k:'status',l:'สถานะ',t:'select',opts:()=>[['todo','รอทำ'],['done','เสร็จแล้ว']],def:'todo'},
+  {k:'target',l:'ศัตรูพืชเป้าหมาย',t:'text',ph:'เช่น เพลี้ยไก่แจ้',show:v=>v.type==='spray',full:1},
+  {k:'product',l:'ชื่อการค้า / สูตรปุ๋ย',t:'text',show:v=>v.type==='spray'||v.type==='fert'},
+  {k:'ai',l:'สารสำคัญ (ชื่อสามัญ)',t:'text',show:v=>v.type==='spray'},
+  {k:'rate',l:'อัตราที่ใช้',t:'text',ph:'เช่น 20 มล./น้ำ 20 ลิตร',show:v=>v.type==='spray'||v.type==='fert'},
+  {k:'qtyUsed',l:'ปริมาณที่ใช้รวม',t:'text',ph:'เช่น 200 ลิตร / 3 กระสอบ',show:v=>v.type==='spray'||v.type==='fert'},
+  {k:'method',l:'วิธีใช้',t:'text',ph:'พ่นทางใบ / หว่านรอบทรงพุ่ม',show:v=>v.type==='spray'||v.type==='fert'},
+  {k:'phi',l:'ระยะเว้นก่อนเก็บเกี่ยว (วัน)',t:'number',hint:'ดูจากฉลากสาร',show:v=>v.type==='spray'},
+  {k:'operator',l:'ผู้ปฏิบัติงาน',t:'text',full:1},
+  {k:'detail',l:'หมายเหตุ',t:'textarea',full:1}],
+  hook:(k,v)=>{ if((k==='product'||k==='ai')&&isBanned(v)) toast('สารนี้เป็นวัตถุอันตรายที่ห้ามใช้ในประเทศไทย ใช้แล้วไม่ผ่าน GAP'); }},
+ blooms:{title:'บันทึกดอก-ผล',fields:[
+  {k:'plotId',l:'แปลง',t:'select',opts:()=>optPlots(),req:1},
+  {k:'treeId',l:'ต้น',t:'select',opts:optTrees,dep:'plotId'},
+  {k:'variety',l:'พันธุ์',t:'select',opts:()=>arr(VARIETIES),def:'หมอนทอง'},
+  {k:'bloomDate',l:'วันดอกบาน',t:'date',req:1,def:today},
+  {k:'fruitCount',l:'จำนวนผลที่ไว้',t:'number'},
+  {k:'status',l:'สถานะ',t:'select',opts:()=>Object.entries(BSTAT).map(([k,v])=>[k,v[0]]),def:'dev'},
+  {k:'harvestDate',l:'วันเก็บเกี่ยว',t:'date',show:v=>v.status==='done'},
+  {k:'kgA',l:'เกรด A (กก.)',t:'number',step:'0.1',show:v=>v.status==='done'},
+  {k:'kgB',l:'เกรด B (กก.)',t:'number',step:'0.1',show:v=>v.status==='done'},
+  {k:'kgC',l:'ตกเกรด (กก.)',t:'number',step:'0.1',show:v=>v.status==='done'},
+  {k:'dryMatter',l:'น้ำหนักเนื้อแห้ง (%)',t:'number',step:'0.1',hint:'ผลตรวจความแก่ ถ้ามี',show:v=>v.status==='done'},
+  {k:'lot',l:'รหัสล็อต',t:'text',hint:'ใช้ตามสอบย้อนกลับ',show:v=>v.status==='done'},
+  {k:'buyer',l:'ผู้ซื้อ / ล้ง',t:'text',show:v=>v.status==='done',full:1},
+  {k:'note',l:'หมายเหตุ',t:'textarea',full:1}],
+  hook:(k,v,set)=>{
+    if(k==='treeId'&&v.treeId){const t=byId('trees',v.treeId);if(t){set('variety',t.variety);}}
+    if(k==='status'&&v.status==='done'&&!v.harvestDate){set('harvestDate',today());v.harvestDate=today();}
+    if((k==='status'||k==='harvestDate'||k==='plotId')&&v.status==='done'&&(!v.lot||/^[^-]+-\d{6}$/.test(v.lot))) set('lot',lotOf(v.plotId,v.harvestDate));
+  }},
+ pests:{title:'โรคและแมลง',fields:[
+  {k:'date',l:'วันที่พบ',t:'date',req:1,def:today},
+  {k:'problem',l:'ปัญหา',t:'select',opts:()=>arr(PESTS)},
+  {k:'plotId',l:'แปลง',t:'select',opts:()=>optPlots(),req:1},
+  {k:'treeId',l:'ต้น',t:'select',opts:optTrees,dep:'plotId'},
+  {k:'severity',l:'ความรุนแรง',t:'select',opts:()=>Object.entries(SEV).map(([k,v])=>[k,v[0]]),def:'mid'},
+  {k:'status',l:'สถานะ',t:'select',opts:()=>[['open','กำลังจัดการ'],['closed','หายแล้ว']],def:'open'},
+  {k:'symptom',l:'อาการที่พบ',t:'textarea',full:1},
+  {k:'treatment',l:'การจัดการ (สาร อัตรา วิธี)',t:'textarea',full:1},
+  {k:'followUp',l:'นัดตรวจซ้ำ',t:'date'}]},
+ finance:{title:'รายรับ-รายจ่าย',fields:[
+  {k:'date',l:'วันที่',t:'date',req:1,def:today},
+  {k:'kind',l:'ประเภท',t:'select',opts:()=>[['out','รายจ่าย'],['in','รายรับ']],def:'out'},
+  {k:'cat',l:'หมวด',t:'select',opts:v=>arr(v.kind==='in'?INC:EXP),dep:'kind',full:1},
+  {k:'item',l:'รายการ',t:'text',ph:'เช่น ปุ๋ย 15-15-15 / ค่าจ้างตัดหญ้า',full:1},
+  {k:'party',l:'ร้านค้า / ผู้ซื้อ',t:'text',full:1},
+  {k:'qty',l:'จำนวน',t:'number',step:'0.01'},
+  {k:'unit',l:'หน่วย',t:'text',ph:'กระสอบ, คน-วัน, กก.'},
+  {k:'unitPrice',l:'ราคาต่อหน่วย (บาท)',t:'number',step:'0.01'},
+  {k:'amount',l:'รวม (บาท)',t:'number',step:'0.01',req:1},
+  {k:'plotId',l:'แปลง',t:'select',opts:()=>optPlots('ทุกแปลง/ส่วนกลาง'),full:1},
+  {k:'note',l:'หมายเหตุ',t:'textarea',full:1}],
+  hook:(k,v,set)=>{ if((k==='qty'||k==='unitPrice')&&v.qty&&v.unitPrice) set('amount',Math.round(v.qty*v.unitPrice*100)/100); }},
+ trainings:{title:'การฝึกอบรม',fields:[
+  {k:'date',l:'วันที่',t:'date',req:1,def:today},
+  {k:'person',l:'ผู้เข้าอบรม',t:'text',req:1},
+  {k:'topic',l:'หัวข้อ',t:'text',req:1,ph:'เช่น การใช้สารเคมีอย่างปลอดภัย',full:1},
+  {k:'org',l:'ผู้จัด / วิทยากร',t:'text',full:1},
+  {k:'note',l:'หมายเหตุ',t:'textarea',full:1}]},
+ treelogs:{title:'ขนาดทรงพุ่มและรูปถ่าย',fields:[
+  {k:'treeId',l:'ต้น',t:'select',opts:()=>S.trees.slice().sort((a,b)=>String(a.code).localeCompare(String(b.code),'th',{numeric:true})).map(t=>[t.id,t.code+' · '+t.variety]),req:1},
+  {k:'date',l:'วันที่',t:'date',req:1,def:today},
+  {k:'canopy',l:'ความกว้างทรงพุ่ม (ม.)',t:'number',step:'0.1',hint:'เส้นผ่านศูนย์กลางทรงพุ่ม'},
+  {k:'height',l:'ความสูงต้น (ม.)',t:'number',step:'0.1'},
+  {k:'girth',l:'เส้นรอบวงลำต้น (ซม.)',t:'number',step:'0.5',hint:'วัดจุดเดิมทุกครั้ง'},
+  {k:'photos',l:'รูปถ่าย',t:'photos',full:1},
+  {k:'note',l:'บันทึก',t:'textarea',full:1,ph:'เช่น แตกใบอ่อนชุดที่ 2 ใบเหลืองด้านทิศใต้'}]},
+ gap:{title:'ข้อมูลฟาร์มสำหรับ GAP',single:1,fields:[
+  {k:'farmer',l:'ชื่อ-สกุลเกษตรกร',t:'text',req:1,full:1},
+  {k:'farmerReg',l:'เลขทะเบียนเกษตรกร',t:'text'},
+  {k:'gapCode',l:'เลขที่ใบรับรอง GAP',t:'text',hint:'เว้นว่างถ้ายื่นขอครั้งแรก'},
+  {k:'phone',l:'โทรศัพท์',t:'text'},
+  {k:'gps',l:'พิกัดแปลง (GPS)',t:'text',ph:'เช่น 8.12345, 98.30123'},
+  {k:'address',l:'ที่ตั้งแปลง (บ้านเลขที่ หมู่ ตำบล อำเภอ จังหวัด)',t:'textarea',req:1,full:1},
+  {k:'water',l:'แหล่งน้ำที่ใช้',t:'select',opts:()=>arr(['','บ่อ/สระในสวน','บ่อบาดาล','คลอง/ลำธาร','น้ำประปา','หลายแหล่ง'])},
+  {k:'waterTest',l:'วันที่วิเคราะห์น้ำล่าสุด',t:'date'},
+  {k:'soilTest',l:'วันที่วิเคราะห์ดินล่าสุด',t:'date'},
+  {k:'landHistory',l:'ประวัติการใช้พื้นที่ก่อนปลูก',t:'textarea',full:1,ph:'เช่น เดิมเป็นสวนยางพารา ไม่เคยเป็นที่ทิ้งขยะหรือโรงงาน'},
+  {k:'risk',l:'ความเสี่ยงการปนเปื้อนและการป้องกัน',t:'textarea',full:1,ph:'เช่น แปลงข้างเคียงฉีดสาร ทำแนวกันชนด้วยไม้พุ่ม'},
+  {k:'chemStore',l:'สถานที่เก็บสารเคมีและอุปกรณ์',t:'textarea',full:1,ph:'เช่น ตู้มีกุญแจในโรงเก็บ แยกจากที่พักผลผลิต'}]},
+ gapcheck:{title:'แบบประเมินตนเอง',single:1,fields:[
+  {k:'reviewDate',l:'วันที่ประเมิน',t:'date',def:today},
+  {k:'reviewer',l:'ผู้ประเมิน',t:'text'},
+  ...GAPCHK.map((c,i)=>({k:'c'+i,l:(i+1)+'. '+c[0],t:'select',hint:c[1],full:1,opts:()=>[['','ยังไม่ประเมิน'],...Object.entries(CHK).map(([k,v])=>[k,v[0]])]})),
+  {k:'fixNote',l:'สิ่งที่ต้องปรับปรุงและกำหนดเสร็จ',t:'textarea',full:1}]}
+};
+
+/* ---------- modal form ---------- */
+function openForm(col,id,preset,back){
+  const F=FORMS[col]; const rec=F.single?{...S.gap}:id?{...byId(col,id)}:{...(preset||{})};
+  if(!id) F.fields.forEach(f=>{ if(rec[f.k]==null&&f.def!=null) rec[f.k]=typeof f.def==='function'?f.def():f.def; });
+  if(col==='trees'&&!id&&!rec.plotId&&UI.plot) rec.plotId=UI.plot;
+  if((col==='trees'||col==='blooms'||col==='pests')&&!S.plots.length){ toast('เพิ่มแปลงก่อน แล้วค่อยเพิ่มรายการนี้'); return openForm('plots'); }
+  if(col==='treelogs'&&!S.trees.length){ toast('เพิ่มต้นทุเรียนก่อน'); return openForm('trees'); }
+  const photos=[...(rec.photos||[])], added=[], removed=[]; let busy=0;
+  const fld=f=>{
+    const v=rec[f.k]??''; const idA=`f_${col}_${f.k}`;
+    let inp;
+    if(f.t==='photos'){ inp=`<div class="thumbs" id="thumbs"></div>${assets?`<div class="toolbar"><label class="btn" for="${idA}">ถ่ายรูป / เลือกรูป</label><input id="${idA}" type="file" accept="image/*" multiple hidden></div>`:`<span class="hint">${mode==='db'?'เฉพาะเจ้าของสวนที่อัปโหลดรูปได้':'อัปโหลดรูปได้เมื่อเปิดหน้านี้ใน claude.ai'}</span>`}`; }
+    else if(f.t==='select'){ inp=`<select id="${idA}" name="${f.k}" ${f.req?'required':''}>${f.opts(rec).map(([a,b])=>`<option value="${esc(a)}" ${String(a)===String(v)?'selected':''}>${esc(b)}</option>`).join('')}</select>`; }
+    else if(f.t==='textarea') inp=`<textarea id="${idA}" name="${f.k}">${esc(v)}</textarea>`;
+    else inp=`<input id="${idA}" name="${f.k}" type="${f.t}" ${f.step?`step="${f.step}"`:''} ${f.t==='number'?'inputmode="decimal"':''} value="${esc(v)}" ${f.ph?`placeholder="${esc(f.ph)}"`:''} ${f.req?'required':''}>`;
+    return `<div class="fld ${f.full?'full':''}" data-k="${f.k}"><label ${f.t==='photos'?'':`for="${idA}"`}>${esc(f.l)}${f.req?' *':''}</label>${f.hint?`<span class="hint">${esc(f.hint)}</span>`:''}${inp}</div>`;
+  };
+  $('#modal').innerHTML=`<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(F.title)}">
+    <div class="top"><h2>${F.single?'':id?'แก้ไข':'เพิ่ม'}${esc(F.title)}</h2><button class="iconbtn" data-close aria-label="ปิด">✕</button></div>
+    <form id="frm" novalidate>${F.fields.map(fld).join('')}
+      <div class="actions"><div>${id?`<button type="button" class="btn danger" id="del">ลบ</button>`:''}</div>
+      <div class="toolbar"><button type="button" class="btn" data-close>ยกเลิก</button><button class="btn pri" type="submit" id="saveBtn">บันทึก</button></div></div>
+    </form></div></div>`;
+  const frm=$('#frm');
+  const drawThumbs=()=>{const t=$('#thumbs');if(!t)return;
+    t.innerHTML=photos.map((p,i)=>`<div class="thumb"><img src="${blob(p)}" alt="รูปที่ ${i+1}"><button type="button" class="x" data-rm="${i}" aria-label="เอารูปออก">✕</button></div>`).join('')+(busy?Array(busy).fill('<div class="thumb busy">กำลังอัปโหลด…</div>').join(''):'');
+    $('#saveBtn').disabled=busy>0;
+    t.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const [p]=photos.splice(+b.dataset.rm,1);removed.push(p);drawThumbs()});
+  };
+  drawThumbs();
+  const fi=frm.querySelector('input[type=file]');
+  if(fi) fi.onchange=async()=>{
+    const files=[...fi.files]; fi.value=''; busy+=files.length; drawThumbs();
+    for(const f of files){
+      try{const b=await shrink(f);const du=await toDataURL(b);const pid=await run('uploadPhoto',du,'durian-'+Date.now()+'.jpg');photos.push(pid);added.push(pid);}
+      catch(e){toast(isNet(e)?'อัปโหลดรูปต้องมีสัญญาณอินเทอร์เน็ต':'อัปโหลดรูปไม่สำเร็จ: '+((e&&e.message)||e))}
+      busy--; drawThumbs();
+    }
+  };
+  const fe=k=>frm.elements.namedItem(k);
+  const read=()=>{const o={};F.fields.forEach(f=>{if(f.t==='photos'){o[f.k]=photos.slice();return}const el=fe(f.k);let x=el.value;if(f.t==='number')x=x===''?null:Number(x);o[f.k]=x===''?null:x});return o};
+  const set=(k,val)=>{const el=fe(k);if(el){el.value=val;}};
+  const refresh=(changed)=>{
+    const v=read();
+    F.fields.forEach(f=>{
+      if(f.dep&&f.dep===changed){const el=fe(f.k);const cur=el.value;el.innerHTML=f.opts(v).map(([a,b])=>`<option value="${esc(a)}">${esc(b)}</option>`).join('');if([...el.options].some(o=>o.value===cur))el.value=cur;}
+      if(f.show) frm.querySelector(`[data-k="${f.k}"]`).hidden=!f.show(v);
+    });
+  };
+  refresh();
+  frm.addEventListener('change',e=>{const k=e.target.name;if(!k)return;if(F.hook)F.hook(k,read(),set);refresh(k)});
+  frm.addEventListener('input',e=>{const k=e.target.name;if(F.hook&&(k==='qty'||k==='unitPrice'))F.hook(k,read(),set)});
+  let saved=false;
+  modalCleanup=()=>{ if(!saved) trash(added); };
+  modalBack=back||null;
+  frm.addEventListener('submit',async e=>{
+    e.preventDefault(); if(busy)return;
+    const v=read(); const miss=F.fields.find(f=>f.req&&(v[f.k]==null||v[f.k]===''));
+    if(miss){toast('กรุณากรอก '+miss.l);fe(miss.k)?.focus();return}
+    F.fields.forEach(f=>{if(f.show&&!f.show(v))v[f.k]=null});
+    try{ if(F.single) await saveGap({...S.gap,...v}); else await save(col,{...rec,...v,id});
+      saved=true; trash(removed); closeModal(); }catch(e){}
+  });
+  const del=$('#del'); if(del) del.addEventListener('click',async()=>{
+    if(del.dataset.armed){await remove(col,id);saved=true;trash([...(rec.photos||[]),...added]);closeModal()} else {del.dataset.armed=1;del.textContent='กดอีกครั้งเพื่อยืนยันลบ';}
+  });
+  setTimeout(()=>frm.querySelector('input:not([type=file]),select')?.focus(),30);
+}
+function closeModal(){
+  if(modalCleanup){try{modalCleanup()}catch(e){}modalCleanup=null}
+  $('#modal').innerHTML='';
+  const b=modalBack; modalBack=null; if(b) setTimeout(b,120);
+}
+
+function growthChart(L){
+  const P=L.filter(l=>l.canopy!=null||l.height!=null);
+  if(P.length<2) return `<p class="note" style="margin:0">บันทึกขนาดอย่างน้อย 2 ครั้งเพื่อดูกราฟการเติบโต</p>`;
+  const W=600,H=200,l=36,r=14,t=14,b=28;
+  const t0=pd(P[0].date).getTime(),t1=pd(P[P.length-1].date).getTime()||t0+1;
+  const mx=Math.max(...P.map(p=>Math.max(+p.canopy||0,+p.height||0)));
+  const step=mx>12?4:mx>6?2:1, top=Math.ceil(mx*1.1/step)*step||step;
+  const X=d=>l+(pd(d).getTime()-t0)/((t1-t0)||1)*(W-l-r), Y=v=>t+(1-v/top)*(H-t-b);
+  let g='';for(let v=0;v<=top;v+=step)g+=`<line x1="${l}" x2="${W-r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${l-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  const line=(k,c)=>{const Q=P.filter(p=>p[k]!=null&&p[k]!=='');if(!Q.length)return '';
+    return `<polyline fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round" points="${Q.map(p=>X(p.date)+','+Y(+p[k])).join(' ')}"/>`+Q.map((p,i)=>`<circle cx="${X(p.date)}" cy="${Y(+p[k])}" r="${i===Q.length-1?4.5:3}" fill="${c}"/>`).join('')+
+    `<text x="${X(Q[Q.length-1].date)}" y="${Y(+Q[Q.length-1][k])-9}" text-anchor="end" font-size="11" fill="${c}" font-weight="600">${(+Q[Q.length-1][k]).toFixed(1)} ม.</text>`};
+  const xl=[P[0],P[P.length-1]].map((p,i)=>`<text x="${X(p.date)}" y="${H-8}" text-anchor="${i?'end':'start'}" font-size="11" fill="var(--muted)">${fmtD(p.date)}</text>`).join('');
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟความกว้างทรงพุ่มและความสูง">${g}${line('canopy','var(--accent)')}${line('height','var(--gold)')}${xl}</svg></div>
+   <div class="legend"><span><i style="background:var(--accent)"></i>ความกว้างทรงพุ่ม (ม.)</span><span><i style="background:var(--gold)"></i>ความสูง (ม.)</span></div>`;
+}
+let LB=[],LBi=0;
+function openLB(list,i){LB=list;LBi=i;drawLB()}
+function drawLB(){const p=LB[LBi];if(!p){$('#lb').innerHTML='';return}
+  $('#lb').innerHTML=`<div class="lb" id="lbbg" role="dialog" aria-label="ดูรูป"><img src="${blob(p.id)}" alt="${esc(p.cap)}"><div class="bar2">${LB.length>1?`<button data-lb="-1" aria-label="รูปก่อน">‹</button>`:''}<span>${esc(p.cap)} · ${LBi+1}/${LB.length}</span>${LB.length>1?`<button data-lb="1" aria-label="รูปถัดไป">›</button>`:''}<button data-lb="0">ปิด</button></div></div>`;
+  $('#lb').querySelectorAll('[data-lb]').forEach(b=>b.onclick=e=>{e.stopPropagation();const d=+b.dataset.lb;if(!d){LB=[];drawLB();return}LBi=(LBi+d+LB.length)%LB.length;drawLB()});
+  $('#lbbg').onclick=e=>{if(e.target.id==='lbbg'){LB=[];drawLB()}};
+}
+function openTree(tid){
+  const t=byId('trees',tid); if(!t){closeModal();return}
+  modalBack=null; modalCleanup=null;
+  const H=HEALTH[t.health||'ok'], L=logsOf(tid), yr=BE(new Date().getFullYear());
+  const cv=lastSize(tid,'canopy'),ht=lastSize(tid,'height'),gr=lastSize(tid,'girth');
+  const pics=[];L.slice().reverse().forEach(l=>(l.photos||[]).forEach(id=>pics.push({id,cap:fmtD(l.date),log:l.id})));
+  const ev=[
+    ...L.map(l=>({d:l.date,col:'treelogs',id:l.id,t:'ตรวจวัด / ถ่ายรูป',s:[l.canopy!=null&&l.canopy!==''?`ทรงพุ่ม ${l.canopy} ม.`:'',l.height!=null&&l.height!==''?`สูง ${l.height} ม.`:'',l.girth!=null&&l.girth!==''?`รอบลำต้น ${l.girth} ซม.`:'',(l.photos||[]).length?`${l.photos.length} รูป`:'',l.note||''].filter(Boolean).join(' · '),c:'var(--accent)'})),
+    ...S.blooms.filter(b=>b.treeId===tid).flatMap(b=>[{d:b.bloomDate,col:'blooms',id:b.id,t:'ดอกบาน',s:`${b.fruitCount?b.fruitCount+' ผล':''}`,c:'var(--gold)'},...(b.status==='done'&&b.harvestDate?[{d:b.harvestDate,col:'blooms',id:b.id,t:'เก็บเกี่ยว',s:`${kg((+b.kgA||0)+(+b.kgB||0)+(+b.kgC||0))} กก.${b.lot?' · ล็อต '+b.lot:''}`,c:'var(--ok)'}]:[])]),
+    ...S.pests.filter(p=>p.treeId===tid).map(p=>({d:p.date,col:'pests',id:p.id,t:p.problem,s:[(SEV[p.severity]||SEV.mid)[0],p.treatment||'',p.status==='closed'?'หายแล้ว':'กำลังจัดการ'].filter(Boolean).join(' · '),c:'var(--bad)'}))
+  ].filter(e=>e.d).sort((a,b)=>b.d.localeCompare(a.d));
+  $('#modal').innerHTML=`<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="ต้น ${esc(t.code)}" style="max-width:720px">
+   <div class="top"><div class="brand"><small>${esc(plotName(t.plotId))}</small><h2>ต้น <span class="num">${esc(t.code)}</span> · ${esc(t.variety||'')}${exTag(t)}</h2><small>${t.plantYear?`ปลูก ${t.plantYear} · อายุ ${yr-t.plantYear} ปี · `:''}<span class="pill ${H[1]}">${H[0]}</span></small></div><button class="iconbtn" data-close aria-label="ปิด">✕</button></div>
+   <div class="toolbar"><button class="btn pri" data-act="tlog" data-id="${tid}">+ วัดขนาด / ถ่ายรูป</button><button class="btn" data-act="tedit" data-id="${tid}">แก้ไขข้อมูลต้น</button></div>
+   ${t.note?`<p class="note" style="margin:0">${esc(t.note)}</p>`:''}
+   <div class="sizes">
+     <div><b>${cv?(+cv.canopy).toFixed(1):'—'}</b><span>ทรงพุ่ม (ม.)${cv?' · '+fmtD(cv.date):''}</span></div>
+     <div><b>${cv?Math.round(Math.PI*(cv.canopy/2)**2):'—'}</b><span>พื้นที่ทรงพุ่ม (ตร.ม.)</span></div>
+     <div><b>${ht?(+ht.height).toFixed(1):'—'}</b><span>ความสูง (ม.)</span></div>
+     <div><b>${gr?(+gr.girth).toFixed(0):'—'}</b><span>รอบลำต้น (ซม.)</span></div></div>
+   <section style="display:flex;flex-direction:column;gap:6px"><h3>การเติบโต</h3>${growthChart(L)}</section>
+   <section style="display:flex;flex-direction:column;gap:8px"><h3>รูปถ่าย <span class="note num">${pics.length}</span></h3>
+    ${pics.length?`<div class="gallery">${pics.map((p,i)=>`<button class="thumb" data-pic="${i}" aria-label="ดูรูป ${esc(p.cap)}"><img src="${blob(p.id)}" alt="" loading="lazy"><span class="cap">${esc(p.cap)}</span></button>`).join('')}</div>`:'<p class="note" style="margin:0">ยังไม่มีรูป ถ่ายมุมเดิมทุกครั้งจะเห็นการเปลี่ยนแปลงชัดขึ้น</p>'}</section>
+   <section style="display:flex;flex-direction:column;gap:4px"><h3>ประวัติ</h3>
+    <div class="tl">${ev.length?ev.map(e=>`<div class="ev" data-evcol="${e.col}" data-evid="${e.id}"><span class="d">${fmtD(e.d)}</span><div style="min-width:0;border-left:3px solid ${e.c};padding-left:10px"><div style="font-weight:500">${esc(e.t)}</div>${e.s?`<div class="note" style="overflow-wrap:anywhere">${esc(e.s)}</div>`:''}</div></div>`).join(''):'<p class="note">ยังไม่มีประวัติ</p>'}</div></section>
+  </div></div>`;
+  $('#modal').querySelectorAll('[data-pic]').forEach(b=>b.onclick=()=>openLB(pics,+b.dataset.pic));
+  $('#modal').querySelectorAll('[data-evcol]').forEach(r=>r.onclick=()=>openForm(r.dataset.evcol,r.dataset.evid,null,()=>openTree(tid)));
+  $('#modal').querySelectorAll('[data-act="tlog"]').forEach(b=>b.onclick=e=>{e.stopPropagation();openForm('treelogs',null,{treeId:tid},()=>openTree(tid))});
+  $('#modal').querySelectorAll('[data-act="tedit"]').forEach(b=>b.onclick=e=>{e.stopPropagation();openForm('trees',tid,null,()=>openTree(tid))});
+}
+function openSettings(){
+  const s=S.settings;
+  $('#modal').innerHTML=`<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="ตั้งค่า">
+   <div class="top"><h2>ตั้งค่าสวน</h2><button class="iconbtn" data-close aria-label="ปิด">✕</button></div>
+   <form id="frm"><div class="fld full"><label for="s_name">ชื่อสวน</label><input id="s_name" name="orchardName" value="${esc(s.orchardName||'')}"></div>
+   <div class="fld full"><label>จำนวนวันจากดอกบานถึงเก็บเกี่ยว (ใช้คำนวณวันตัด)</label><span class="note">ค่าเริ่มต้นเป็นค่ากลางทั่วไป ปรับตามที่สวนเคยตัดจริงในพื้นที่ของคุณ</span></div>
+   ${VARIETIES.map((v,i)=>`<div class="fld"><label for="s_d${i}">${v}</label><input id="s_d${i}" name="d_${i}" type="number" inputmode="numeric" value="${daysFor(v)}"></div>`).join('')}
+   <div class="actions"><button type="button" class="btn" id="resetDays">คืนค่าเริ่มต้น</button><div class="toolbar"><button type="button" class="btn" data-close>ยกเลิก</button><button class="btn pri">บันทึก</button></div></div></form>
+   <p class="note">ข้อมูลบันทึกใน Google Sheet · <a href="${ENV.sheetUrl}" target="_blank" rel="noopener">เปิด Sheet</a></p>
+   <div class="toolbar"><button type="button" class="btn" id="reloadBtn">โหลดข้อมูลล่าสุดจาก Sheet</button></div>
+  </div></div>`;
+  $('#reloadBtn').onclick=()=>{closeModal();load(true)};
+  $('#resetDays').onclick=()=>VARIETIES.forEach((v,i)=>$('#s_d'+i).value=DEF_DAYS[v]);
+  $('#frm').onsubmit=e=>{e.preventDefault();const days={};VARIETIES.forEach((v,i)=>days[v]=Number($('#s_d'+i).value)||DEF_DAYS[v]);saveSettings({orchardName:$('#s_name').value.trim()||'สวนทุเรียน',days});closeModal()};
+}
+
+/* ---------- views ---------- */
+function header(title,sub,extra=''){
+  return `<div class="top"><div class="brand"><small>${esc(S.settings.orchardName||'สวนทุเรียน')}</small><h1>${title}</h1>${sub?`<small>${sub}</small>`:''}</div><div class="toolbar">${extra}<button class="iconbtn" data-act="settings" aria-label="ตั้งค่า">${svg('gear')}</button></div></div>`;
+}
+function taskRow(x,showDate=true){
+  const T=TASKT[x.type]||TASKT.check; const late=x.status!=='done'&&x.date<today();
+  return `<div class="row" data-act="edit" data-col="tasks" data-id="${x.id}">
+    <button class="chk ${x.status==='done'?'on':''}" data-act="toggle" data-id="${x.id}" aria-label="${x.status==='done'?'ทำเครื่องหมายว่ายังไม่เสร็จ':'ทำเครื่องหมายว่าเสร็จ'}">${x.status==='done'?svg('check',3):''}</button>
+    <span class="stripe" style="background:var(${T[1]})"></span>
+    <div class="main"><div class="t" style="${x.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${esc(x.title)}${exTag(x)}</div><div class="s">${T[0]} · ${esc(plotName(x.plotId))}${x.product?' · '+esc(x.product):''}${x.rate?' '+esc(x.rate):''}${x.detail?' · '+esc(x.detail):''}${isBanned(x)?' · <span style="color:var(--bad)">สารห้ามใช้</span>':''}</div></div>
+    ${showDate?`<div class="r num" style="${late?'color:var(--bad)':''}">${fmtD(x.date)}${late?'<br><small>เลยกำหนด</small>':''}</div>`:''}</div>`;
+}
+function bloomLabel(b){const c=treeCode(b.treeId);return c?`ต้น ${esc(c)}`:`ชุดดอก ${esc(plotName(b.plotId))}`}
+function bloomRow(b){
+  const t=today(),due=dueOf(b),total=daysFor(bVariety(b)),el=b.bloomDate?diff(b.bloomDate,t):0;
+  const pct=b.status==='done'?100:Math.max(0,Math.min(100,el/total*100));
+  const left=due?diff(t,due):null;
+  let r;
+  const pc=phiConflict(b);
+  if(b.status==='done') r=`<span class="pill p-ok">เก็บแล้ว</span><div class="num">${kg((+b.kgA||0)+(+b.kgB||0)+(+b.kgC||0))} กก.</div>${b.lot?`<small class="note num">ล็อต ${esc(b.lot)}</small>`:''}${pc?`<div style="color:var(--bad);font-size:.78rem">เก็บก่อนพ้นระยะเว้นสาร</div>`:''}`;
+  else if(b.status==='lost') r=`<span class="pill p-mute">ร่วง/เสียหาย</span>`;
+  else r=`<div class="num" style="font-size:1.1rem;${left<=0?'color:var(--bad)':left<=14?'color:var(--warn)':''}">${left>0?'อีก '+left+' วัน':left===0?'ครบวันนี้':'เลย '+(-left)+' วัน'}</div><small class="note">ตัดประมาณ ${fmtD(due)}</small>`;
+  return `<div class="bloom" data-act="edit" data-col="blooms" data-id="${b.id}">
+   <div style="min-width:0"><div class="t" style="font-weight:500">${bloomLabel(b)} · ${esc(bVariety(b))}${exTag(b)}</div>
+   <div class="s note">${esc(plotName(b.plotId))} · ดอกบาน ${fmtD(b.bloomDate)} · อายุผล ${b.status==='done'&&b.harvestDate?diff(b.bloomDate,b.harvestDate):el} วัน${b.fruitCount?` · ${b.fruitCount} ผล`:''}</div></div>
+   <div style="text-align:right">${r}</div>
+   <div class="bar ${b.status==='done'?'done':''}" role="img" aria-label="ความคืบหน้า ${Math.round(pct)}%"><i style="width:${pct}%"></i></div></div>`;
+}
+function pestRow(p){
+  const s=SEV[p.severity]||SEV.mid; const c=treeCode(p.treeId);
+  return `<div class="row" data-act="edit" data-col="pests" data-id="${p.id}"><span class="stripe" style="background:${p.status==='closed'?'var(--line)':s[2]}"></span>
+   <div class="main"><div class="t">${esc(p.problem)}${exTag(p)}</div><div class="s">${esc(plotName(p.plotId))}${c?' · ต้น '+esc(c):''}${p.treatment?' · '+esc(p.treatment):''}</div></div>
+   <div class="r"><span class="pill ${p.status==='closed'?'p-ok':s[1]}">${p.status==='closed'?'หายแล้ว':s[0]}</span><div class="num note">${fmtD(p.date)}</div>${p.status!=='closed'&&p.followUp?`<div class="note">ตรวจซ้ำ ${fmtD(p.followUp)}</div>`:''}</div></div>`;
+}
+const finYear=y=>S.finance.filter(f=>f.date&&+f.date.slice(0,4)===y);
+const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
+const totalRai=()=>sum(S.plots,p=>p.areaRai);
+
+function vHome(){
+  const t=today(), y=new Date().getFullYear();
+  if(!S.plots.length&&!S.trees.length&&!S.tasks.length&&!S.finance.length){
+    return header('ภาพรวมสวน')+`<div class="panel" style="padding:24px"><h2>เริ่มสมุดสวนเล่มนี้</h2>
+    <p style="margin:0;max-width:60ch">ระบบนี้เก็บทะเบียนต้น ปฏิทินงาน วันดอกบานและวันตัด โรคและแมลง และรายรับรายจ่ายไว้ที่เดียว เริ่มจากเพิ่มแปลงแรก แล้วเพิ่มต้นทุเรียนในแปลงนั้น</p>
+    <div class="toolbar"><button class="btn pri" data-act="add" data-col="plots">เพิ่มแปลงแรก</button><button class="btn" data-act="settings">ตั้งชื่อสวน</button></div></div>`;
+  }
+  const live=S.trees.filter(x=>x.health!=='dead');
+  const dev=S.blooms.filter(b=>(b.status||'dev')==='dev'&&b.bloomDate).sort((a,b)=>dueOf(a).localeCompare(dueOf(b)));
+  const soon=dev.filter(b=>diff(t,dueOf(b))<=30);
+  const tasks=S.tasks.filter(x=>x.status!=='done'&&x.date<=addDays(t,7)).sort((a,b)=>a.date.localeCompare(b.date));
+  const late=tasks.filter(x=>x.date<t).length;
+  const open=S.pests.filter(p=>p.status!=='closed').sort((a,b)=>(b.severity==='high')-(a.severity==='high'));
+  const fy=finYear(y), inc=sum(fy.filter(f=>f.kind==='in'),f=>f.amount), out=sum(fy.filter(f=>f.kind!=='in'),f=>f.amount);
+  const sick=S.trees.filter(x=>x.health==='sick'||x.health==='watch').length;
+  const hasEx=COLS.some(c=>S[c].some(r=>r.example));
+  return header('ภาพรวมสวน',new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+
+  (hasEx?`<div class="banner"><span>ข้อมูลที่ติดป้าย <span class="ex">ตัวอย่าง</span> ใส่ไว้ให้เห็นการทำงาน ลบได้เมื่อพร้อมกรอกข้อมูลจริง</span><button class="btn sm" id="clearEx">ลบข้อมูลตัวอย่างทั้งหมด</button></div>`:'')+
+  `<div class="kpis">
+    <div class="kpi"><b>${live.length}</b><span>ต้นที่ยังให้ผล/เลี้ยงอยู่${sick?` · <span style="color:var(--warn)">${sick} ต้นต้องดูแล</span>`:''}</span></div>
+    <div class="kpi hl"><b>${soon.length}</b><span>ชุดผลถึงวันตัดใน 30 วัน</span></div>
+    <div class="kpi"><b>${tasks.length}</b><span>งานใน 7 วัน${late?` · <span style="color:var(--bad)">ค้าง ${late}</span>`:''}</span></div>
+    <div class="kpi"><b>${baht(inc-out)}</b><span>กำไรสุทธิ ปี ${BE(y)} (บาท)</span></div>
+  </div>
+  <div class="grid2">
+   <section class="panel"><header><h2>งานที่ต้องทำ</h2><button class="btn sm" data-act="tab" data-v="cal">ปฏิทิน</button></header>
+    <div class="list">${tasks.length?tasks.slice(0,8).map(x=>taskRow(x)).join(''):'<div class="empty">ไม่มีงานค้างใน 7 วันข้างหน้า</div>'}</div></section>
+   <section class="panel"><header><h2>ใกล้ถึงวันตัด</h2><button class="btn sm" data-act="tab" data-v="harvest">ดอก-ผลทั้งหมด</button></header>
+    <div class="list">${dev.length?dev.slice(0,5).map(bloomRow).join(''):'<div class="empty">ยังไม่มีชุดผลที่กำลังพัฒนา บันทึกวันดอกบานที่หน้า ดอก-ผล</div>'}</div></section>
+   <section class="panel"><header><h2>โรคและแมลงที่ติดตามอยู่</h2><button class="btn sm" data-act="tab" data-v="pest">ทั้งหมด</button></header>
+    <div class="list">${open.length?open.slice(0,5).map(pestRow).join(''):'<div class="empty">ไม่มีปัญหาที่ค้างอยู่</div>'}</div></section>
+   <section class="panel"><header><h2>การเงินปี ${BE(y)}</h2><button class="btn sm" data-act="tab" data-v="money">บัญชี</button></header>
+    ${finSummary(y,true)}</section>
+  </div>`;
+}
+
+function vTrees(){
+  const counts=pid=>{const a=S.trees.filter(t=>t.plotId===pid);return {n:a.filter(t=>t.health!=='dead').length,h:Object.keys(HEALTH).map(k=>a.filter(t=>(t.health||'ok')===k).length),all:a.length}};
+  let list=S.trees.filter(t=>(!UI.plot||t.plotId===UI.plot)&&(!UI.health||(t.health||'ok')===UI.health)).sort((a,b)=>String(a.code).localeCompare(String(b.code),'th',{numeric:true}));
+  const yr=BE(new Date().getFullYear());
+  const byVar={};S.trees.filter(t=>t.health!=='dead').forEach(t=>byVar[t.variety]=(byVar[t.variety]||0)+1);
+  return header('ทะเบียนต้นและแปลง',`${S.plots.length} แปลง · ${kg(totalRai())} ไร่ · ${Object.entries(byVar).map(([k,v])=>k+' '+v).join(', ')||'ยังไม่มีต้น'}`)+
+  `<section class="panel"><header><h2>แปลง</h2><button class="btn sm" data-act="add" data-col="plots">+ เพิ่มแปลง</button></header>
+   ${S.plots.length?`<div class="plots">${S.plots.map(p=>{const c=counts(p.id);return `<button class="plot" data-act="edit" data-col="plots" data-id="${p.id}" style="${UI.plot===p.id?'border-color:var(--accent)':''}">
+     <h3>${esc(p.name)}${exTag(p)}</h3><span class="note">${p.areaRai?kg(p.areaRai)+' ไร่ · ':''}${c.n} ต้น${p.treesPlanned?' / ผัง '+p.treesPlanned:''}</span>
+     <span class="hb">${c.all?c.h.map((n,i)=>n?`<i style="width:${n/c.all*100}%;background:${Object.values(HEALTH)[i][2]}"></i>`:'').join(''):''}</span></button>`}).join('')}</div>`:'<div class="empty">ยังไม่มีแปลง</div>'}
+  </section>
+  <section class="panel"><header><h2>ต้นทุเรียน <span class="note num">${list.length}</span></h2><div class="toolbar"><button class="btn sm" data-act="add" data-col="treelogs">+ วัดขนาด / ถ่ายรูป</button><button class="btn sm" data-act="add" data-col="trees">+ เพิ่มต้น</button></div></header>
+   <div class="toolbar"><select id="fPlot" aria-label="กรองแปลง"><option value="">ทุกแปลง</option>${S.plots.map(p=>`<option value="${p.id}" ${UI.plot===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select>
+   <select id="fHealth" aria-label="กรองสุขภาพ"><option value="">ทุกสถานะ</option>${Object.entries(HEALTH).map(([k,v])=>`<option value="${k}" ${UI.health===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+   <div class="list">${list.length?list.map(t=>{const H=HEALTH[t.health||'ok'];const nb=S.blooms.filter(b=>b.treeId===t.id).length,np=S.pests.filter(p=>p.treeId===t.id&&p.status!=='closed').length;
+     const ph=lastPhoto(t.id),cv=lastSize(t.id,'canopy');
+     return `<div class="row" data-act="tree" data-id="${t.id}"><span class="stripe" style="background:${H[2]}"></span>${ph?`<img class="rowthumb" src="${blob(ph)}" alt="" loading="lazy">`:''}
+     <div class="main"><div class="t"><span class="num">${esc(t.code)}</span> · ${esc(t.variety||'')}${exTag(t)}</div><div class="s">${esc(plotName(t.plotId))}${t.plantYear?` · ปลูก ${t.plantYear} (อายุ ${yr-t.plantYear} ปี)`:''}${cv?` · ทรงพุ่ม ${(+cv.canopy).toFixed(1)} ม.`:''}${nb?` · ดอก-ผล ${nb} ครั้ง`:''}${np?` · <span style="color:var(--bad)">ปัญหาค้าง ${np}</span>`:''}${t.note?' · '+esc(t.note):''}</div></div>
+     <div class="r"><span class="pill ${H[1]}">${H[0]}</span></div></div>`}).join(''):'<div class="empty">ไม่พบต้นตามตัวกรอง</div>'}</div>
+  </section>`;
+}
+
+function vCal(){
+  const y=UI.calY,m=UI.calM,t=today();
+  const first=new Date(y,m,1), start=new Date(y,m,1-first.getDay());
+  const ev={};const push=(d,c)=>{(ev[d]=ev[d]||[]).push(c)};
+  S.tasks.forEach(x=>push(x.date,`var(${(TASKT[x.type]||TASKT.check)[1]})`));
+  S.blooms.filter(b=>(b.status||'dev')==='dev'&&b.bloomDate).forEach(b=>push(dueOf(b),'var(--gold)'));
+  S.pests.filter(p=>p.status!=='closed'&&p.followUp).forEach(p=>push(p.followUp,'var(--bad)'));
+  let cells='';for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const s=iso(d);
+    if(i===35&&d.getMonth()!==m)break;
+    cells+=`<button class="cell ${d.getMonth()!==m?'out':''} ${s===t?'today':''} ${s===UI.sel?'sel':''}" data-act="day" data-d="${s}" aria-label="${fmtD(s)}"><span class="d">${d.getDate()}</span><span class="dots">${(ev[s]||[]).slice(0,6).map(c=>`<i style="background:${c}"></i>`).join('')}</span></button>`}
+  const mk=`${y}-${z(m+1)}`;
+  const sel=UI.sel&&UI.sel.startsWith(mk)?UI.sel:null;
+  const tasks=S.tasks.filter(x=>sel?x.date===sel:x.date&&x.date.startsWith(mk)).sort((a,b)=>a.date.localeCompare(b.date));
+  const dues=S.blooms.filter(b=>(b.status||'dev')==='dev'&&b.bloomDate&&(sel?dueOf(b)===sel:dueOf(b).startsWith(mk)));
+  const fol=S.pests.filter(p=>p.status!=='closed'&&p.followUp&&(sel?p.followUp===sel:p.followUp.startsWith(mk)));
+  const mName=first.toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  return header('ปฏิทินงานสวน')+`<section class="panel">
+   <header><div class="toolbar"><button class="btn sm" data-act="cal" data-d="-1" aria-label="เดือนก่อน">‹</button><h2 style="min-width:9em;text-align:center">${mName}</h2><button class="btn sm" data-act="cal" data-d="1" aria-label="เดือนถัดไป">›</button></div><button class="btn sm" data-act="cal" data-d="0">วันนี้</button></header>
+   <div class="cal">${['อา','จ','อ','พ','พฤ','ศ','ส'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
+   <div class="legend">${Object.values(TASKT).map(v=>`<span><i style="background:var(${v[1]})"></i>${v[0]}</span>`).join('')}<span><i style="background:var(--gold)"></i>วันตัดโดยประมาณ</span><span><i style="background:var(--bad)"></i>นัดตรวจโรค</span></div>
+  </section>
+  <section class="panel"><header><h2>${sel?fmtD(sel):'ทั้งเดือน'}</h2><div class="toolbar">${sel?`<button class="btn sm" data-act="day" data-d="">ดูทั้งเดือน</button>`:''}<button class="btn sm pri" data-act="add" data-col="tasks">+ เพิ่มงาน</button></div></header>
+   <div class="list">${tasks.map(x=>taskRow(x)).join('')}
+   ${dues.map(b=>`<div class="row" data-act="edit" data-col="blooms" data-id="${b.id}"><span class="stripe" style="background:var(--gold)"></span><div class="main"><div class="t">ถึงวันตัด: ${bloomLabel(b)} · ${esc(bVariety(b))}</div><div class="s">ดอกบาน ${fmtD(b.bloomDate)}</div></div><div class="r num">${fmtD(dueOf(b))}</div></div>`).join('')}
+   ${fol.map(p=>`<div class="row" data-act="edit" data-col="pests" data-id="${p.id}"><span class="stripe" style="background:var(--bad)"></span><div class="main"><div class="t">ตรวจซ้ำ: ${esc(p.problem)}</div><div class="s">${esc(plotName(p.plotId))}</div></div><div class="r num">${fmtD(p.followUp)}</div></div>`).join('')}
+   ${!tasks.length&&!dues.length&&!fol.length?'<div class="empty">ไม่มีรายการ</div>':''}</div></section>`;
+}
+
+function vHarvest(){
+  const y=new Date().getFullYear();
+  let list=S.blooms.filter(b=>UI.bloomF==='all'||(b.status||'dev')===UI.bloomF);
+  list.sort((a,b)=>UI.bloomF==='dev'?(dueOf(a)||'').localeCompare(dueOf(b)||''):(b.bloomDate||'').localeCompare(a.bloomDate||''));
+  const done=S.blooms.filter(b=>b.status==='done'&&(b.harvestDate||b.bloomDate||'').startsWith(String(y)));
+  const A=sum(done,b=>b.kgA),B=sum(done,b=>b.kgB),C=sum(done,b=>b.kgC),T=A+B+C;
+  const dev=S.blooms.filter(b=>(b.status||'dev')==='dev');
+  return header('ดอก ผล และการเก็บเกี่ยว','วันตัดคำนวณจากวันดอกบาน + จำนวนวันของแต่ละพันธุ์ (ปรับได้ที่ตั้งค่า)')+
+  `<div class="kpis">
+    <div class="kpi hl"><b>${dev.length}</b><span>ชุดผลกำลังพัฒนา · ${sum(dev,b=>b.fruitCount)} ผล</span></div>
+    <div class="kpi"><b>${kg(T)}</b><span>กก. เก็บแล้วปี ${BE(y)}</span></div>
+    <div class="kpi"><b>${T?Math.round(A/T*100):0}%</b><span>สัดส่วนเกรด A</span></div>
+    <div class="kpi"><b>${totalRai()?kg(T/totalRai()):'—'}</b><span>กก./ไร่ ปีนี้</span></div></div>
+  ${T?`<section class="panel"><header><h2>คุณภาพผลผลิตปี ${BE(y)}</h2></header><div class="cats">
+    ${[['เกรด A',A,'var(--ok)'],['เกรด B',B,'var(--gold)'],['ตกเกรด',C,'var(--muted)']].map(([l,v,c])=>`<div class="cat"><span>${l}</span><div class="bar"><i style="width:${v/T*100}%;background:${c}"></i></div><span class="num">${kg(v)} กก.</span></div>`).join('')}</div></section>`:''}
+  <section class="panel"><header><div class="seg" role="group" aria-label="กรองสถานะ">${[['dev','กำลังพัฒนา'],['done','เก็บแล้ว'],['all','ทั้งหมด']].map(([k,l])=>`<button data-act="bf" data-v="${k}" aria-pressed="${UI.bloomF===k}">${l}</button>`).join('')}</div>
+   <button class="btn sm pri" data-act="add" data-col="blooms">+ บันทึกดอกบาน</button></header>
+   <div class="list">${list.length?list.map(bloomRow).join(''):'<div class="empty">ยังไม่มีรายการ เมื่อดอกบาน ให้บันทึกวันที่ไว้ ระบบจะนับวันถึงวันตัดให้</div>'}</div></section>`;
+}
+
+function vPest(){
+  const list=S.pests.filter(p=>UI.pestF==='all'||(p.status||'open')===UI.pestF).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const yr=String(new Date().getFullYear());
+  const freq={};S.pests.filter(p=>(p.date||'').startsWith(yr)).forEach(p=>freq[p.problem]=(freq[p.problem]||0)+1);
+  const fr=Object.entries(freq).sort((a,b)=>b[1]-a[1]);const mx=fr[0]?.[1]||1;
+  return header('โรคและแมลง')+
+  (fr.length?`<section class="panel"><header><h2>ปัญหาที่พบบ่อยปี ${BE(+yr)}</h2></header><div class="cats">${fr.slice(0,6).map(([k,v])=>`<div class="cat"><span style="overflow-wrap:anywhere">${esc(k)}</span><div class="bar"><i style="width:${v/mx*100}%;background:var(--bad)"></i></div><span class="num">${v}</span></div>`).join('')}</div></section>`:'')+
+  `<section class="panel"><header><div class="seg" role="group" aria-label="กรองสถานะ">${[['open','กำลังจัดการ'],['closed','หายแล้ว'],['all','ทั้งหมด']].map(([k,l])=>`<button data-act="pf" data-v="${k}" aria-pressed="${UI.pestF===k}">${l}</button>`).join('')}</div>
+   <button class="btn sm pri" data-act="add" data-col="pests">+ บันทึกปัญหา</button></header>
+   <div class="list">${list.length?list.map(pestRow).join(''):'<div class="empty">ไม่มีรายการ</div>'}</div></section>`;
+}
+
+function finSummary(y,compact){
+  const fy=finYear(y),inc=sum(fy.filter(f=>f.kind==='in'),f=>f.amount),out=sum(fy.filter(f=>f.kind!=='in'),f=>f.amount),rai=totalRai();
+  const cats=EXP.map(c=>[c,sum(fy.filter(f=>f.kind!=='in'&&f.cat===c),f=>f.amount)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);const mx=cats[0]?.[1]||1;
+  return `<div class="cats">
+    <div class="cat"><span>รายรับ</span><div></div><span class="num" style="color:var(--ok)">${baht(inc)}</span></div>
+    <div class="cat"><span>รายจ่าย</span><div></div><span class="num" style="color:var(--bad)">${baht(out)}</span></div>
+    ${rai?`<div class="cat"><span>ต้นทุน/ไร่</span><div></div><span class="num">${baht(out/rai)}</span></div>`:''}
+    ${compact?'':`<div style="height:6px"></div>`}
+    ${cats.slice(0,compact?4:20).map(([c,v])=>`<div class="cat"><span>${c}</span><div class="bar"><i style="width:${v/mx*100}%"></i></div><span class="num">${baht(v)}</span></div>`).join('')}
+    ${!fy.length?'<div class="empty">ยังไม่มีรายการในปีนี้</div>':''}</div>`;
+}
+function vMoney(){
+  const years=[...new Set([new Date().getFullYear(),...S.finance.filter(f=>f.date).map(f=>+f.date.slice(0,4))])].sort((a,b)=>b-a);
+  const y=UI.year, fy=finYear(y).sort((a,b)=>b.date.localeCompare(a.date));
+  const inc=sum(fy.filter(f=>f.kind==='in'),f=>f.amount),out=sum(fy.filter(f=>f.kind!=='in'),f=>f.amount),rai=totalRai();
+  const lab=fy.filter(f=>f.cat==='ค่าแรง');
+  const harvestKg=sum(S.blooms.filter(b=>b.status==='done'&&(b.harvestDate||'').startsWith(String(y))),b=>(+b.kgA||0)+(+b.kgB||0)+(+b.kgC||0));
+  return header('รายรับ รายจ่าย และแรงงาน','',`<select id="fYear" aria-label="เลือกปี" style="border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px">${years.map(v=>`<option value="${v}" ${v===y?'selected':''}>ปี ${BE(v)}</option>`).join('')}</select>`)+
+  `<div class="kpis">
+    <div class="kpi"><b style="color:var(--ok)">${baht(inc)}</b><span>รายรับ (บาท)</span></div>
+    <div class="kpi"><b style="color:var(--bad)">${baht(out)}</b><span>รายจ่าย (บาท)</span></div>
+    <div class="kpi hl"><b>${baht(inc-out)}</b><span>กำไรสุทธิ${rai?` · ${baht((inc-out)/rai)}/ไร่`:''}</span></div>
+    <div class="kpi"><b>${harvestKg?baht(out/harvestKg):'—'}</b><span>ต้นทุนต่อ กก. ผลผลิต</span></div></div>
+  <div class="grid2"><section class="panel"><header><h2>สรุปตามหมวด</h2></header>${finSummary(y,false)}</section>
+   <section class="panel"><header><h2>แรงงาน</h2></header><div class="cats">
+    <div class="cat"><span>ค่าแรงรวม</span><div></div><span class="num">${baht(sum(lab,f=>f.amount))} บาท</span></div>
+    <div class="cat"><span>คน-วัน</span><div></div><span class="num">${kg(sum(lab.filter(f=>/คน/.test(f.unit||'')),f=>f.qty))}</span></div>
+    <div class="cat"><span>สัดส่วน</span><div class="bar"><i style="width:${out?sum(lab,f=>f.amount)/out*100:0}%"></i></div><span class="num">${out?Math.round(sum(lab,f=>f.amount)/out*100):0}%</span></div></div>
+    <p class="note" style="margin:0">บันทึกค่าแรงในหมวด "ค่าแรง" ใส่หน่วยเป็น "คน-วัน" เพื่อให้นับวันแรงงานได้</p></section></div>
+  <section class="panel"><header><h2>รายการ <span class="note num">${fy.length}</span></h2><div class="toolbar"><a class="btn sm" href="${ENV.sheetUrl}" target="_blank" rel="noopener">เปิด Google Sheet</a><button class="btn sm pri" data-act="add" data-col="finance">+ เพิ่มรายการ</button></div></header>
+   <div class="list">${fy.length?fy.map(f=>`<div class="row" data-act="edit" data-col="finance" data-id="${f.id}"><span class="stripe" style="background:${f.kind==='in'?'var(--ok)':'var(--line)'}"></span>
+    <div class="main"><div class="t">${esc(f.item||f.cat)}${exTag(f)}</div><div class="s">${esc(f.cat||'')}${f.qty?` · ${kg(f.qty)} ${esc(f.unit||'')}${f.unitPrice?' × '+baht(f.unitPrice):''}`:''}${f.plotId?' · '+esc(plotName(f.plotId)):''}</div></div>
+    <div class="r"><div class="num" style="color:${f.kind==='in'?'var(--ok)':'var(--fg)'}">${f.kind==='in'?'+':'−'}${baht(f.amount)}</div><div class="note num">${fmtD(f.date)}</div></div></div>`).join(''):'<div class="empty">ยังไม่มีรายการในปีนี้</div>'}</div></section>`;
+}
+
+/* ---------- GAP ---------- */
+const inR=d=>!!d&&d>=UI.gFrom&&d<=UI.gTo;
+const byDate=k=>(a,b)=>(a[k]||'').localeCompare(b[k]||'');
+function gapData(){
+  return {
+    spray:S.tasks.filter(t=>t.type==='spray'&&t.status==='done'&&inR(t.date)).sort(byDate('date')),
+    fert:S.tasks.filter(t=>t.type==='fert'&&t.status==='done'&&inR(t.date)).sort(byDate('date')),
+    other:S.tasks.filter(t=>t.type!=='spray'&&t.type!=='fert'&&t.status==='done'&&inR(t.date)).sort(byDate('date')),
+    pest:S.pests.filter(p=>inR(p.date)).sort(byDate('date')),
+    buy:S.finance.filter(f=>f.kind!=='in'&&(f.cat==='ปุ๋ย'||f.cat==='ยา/สารเคมี')&&inR(f.date)).sort(byDate('date')),
+    harvest:S.blooms.filter(b=>b.status==='done'&&inR(b.harvestDate)).sort(byDate('harvestDate')),
+    sale:S.finance.filter(f=>f.kind==='in'&&inR(f.date)).sort(byDate('date')),
+    train:S.trainings.filter(t=>inR(t.date)).sort(byDate('date'))
+  };
+}
+function gapChecks(D){
+  const g=S.gap, out=[];
+  const add=(st,t,d,act)=>out.push({st,t,d,act});
+  const go=(v,l)=>`<button class="btn sm" data-act="tab" data-v="${v}">${l}</button>`;
+  const fm=(f,l)=>`<button class="btn sm" data-act="gapform" data-f="${f}">${l}</button>`;
+  add(g.farmer&&g.address?'ok':'bad','ข้อมูลเกษตรกรและที่ตั้งแปลง',g.farmer?esc(g.farmer):'ยังไม่ได้กรอก',fm('gap','กรอกข้อมูล'));
+  add(g.water&&g.waterTest?'ok':'warn','แหล่งน้ำและผลวิเคราะห์น้ำ',g.water?esc(g.water)+(g.waterTest?' · วิเคราะห์ '+fmtD(g.waterTest):' · ยังไม่มีวันที่วิเคราะห์น้ำ'):'ยังไม่ระบุแหล่งน้ำ',fm('gap','แก้ไข'));
+  add(g.landHistory&&g.risk?'ok':'warn','ประวัติพื้นที่และการประเมินความเสี่ยง',g.landHistory?'มีข้อมูลแล้ว':'ยังไม่ได้กรอก',fm('gap','แก้ไข'));
+  const sm=D.spray.filter(t=>!t.product||!t.ai||!t.rate||!t.operator||t.phi==null).length;
+  add(!D.spray.length?'warn':sm?'warn':'ok','บันทึกการใช้วัตถุอันตราย',`${D.spray.length} ครั้งที่ทำแล้ว${sm?` · ขาดข้อมูล ${sm} รายการ (ชื่อสาร สารสำคัญ อัตรา ผู้ปฏิบัติ หรือระยะเว้น)`:''}`,go('cal','ไปปฏิทิน'));
+  const bn=D.spray.filter(isBanned);
+  add(bn.length?'bad':'ok','ไม่ใช้สารที่ห้ามใช้',bn.length?`พบ ${bn.length} รายการ: ${bn.map(t=>esc(t.product||t.ai)).join(', ')}`:'ไม่พบพาราควอตหรือคลอร์ไพริฟอสในบันทึก','');
+  const pc=D.harvest.filter(phiConflict);
+  add(pc.length?'bad':'ok','เก็บเกี่ยวหลังพ้นระยะเว้นของสาร',pc.length?`${pc.length} ล็อตเก็บก่อนพ้นระยะเว้น: ${pc.map(b=>esc(b.lot||fmtD(b.harvestDate))).join(', ')}`:`ตรวจแล้ว ${D.harvest.length} ล็อต`,pc.length?go('harvest','ดูการเก็บเกี่ยว'):'');
+  const fm2=D.fert.filter(t=>!t.product||!t.rate||!t.operator).length;
+  add(!D.fert.length?'warn':fm2?'warn':'ok','บันทึกการใช้ปุ๋ย',`${D.fert.length} ครั้ง${fm2?` · ขาดข้อมูล ${fm2} รายการ`:''}`,go('cal','ไปปฏิทิน'));
+  const hm=D.harvest.filter(b=>!b.lot||!b.buyer).length;
+  add(!D.harvest.length?'warn':hm?'warn':'ok','การเก็บเกี่ยวตามสอบได้ (ล็อตและผู้ซื้อ)',D.harvest.length?`${D.harvest.length} ล็อต${hm?` · ขาดรหัสล็อตหรือผู้ซื้อ ${hm} รายการ`:''}`:'ยังไม่มีการเก็บเกี่ยวในช่วงนี้',go('harvest','ไปหน้า ดอก-ผล'));
+  add(S.trainings.length?'ok':'warn','การฝึกอบรมผู้ปฏิบัติงาน',`${S.trainings.length} รายการ`,`<button class="btn sm" data-act="add" data-col="trainings">+ เพิ่ม</button>`);
+  const done=GAPCHK.filter((_,i)=>g['c'+i]).length, fx=GAPCHK.filter((_,i)=>g['c'+i]==='fix').length;
+  add(done<8?'warn':fx?'warn':'ok','ประเมินตนเองตามข้อกำหนด 8 ข้อ',`ประเมินแล้ว ${done}/8${fx?` · ต้องปรับปรุง ${fx} ข้อ`:''}${g.reviewDate?' · '+fmtD(g.reviewDate):''}`,fm('gapcheck','ประเมิน'));
+  return out;
+}
+const SECS=[['profile','ข้อมูลเกษตรกรและแปลง'],['spray','การใช้วัตถุอันตราย'],['fert','การใช้ปุ๋ย'],['other','งานดูแลอื่น'],['pest','สำรวจศัตรูพืช'],['buy','ซื้อปัจจัยการผลิต'],['harvest','เก็บเกี่ยวและจำหน่าย'],['train','การฝึกอบรม'],['check','แบบประเมินตนเอง']];
+const DOC_CSS=`.doc{font-family:"Sarabun","IBM Plex Sans Thai",Tahoma,sans-serif;color:#111;font-size:12px;line-height:1.4}
+.doc .page{background:#fff;color:#111;width:277mm;min-height:186mm;padding:9mm 10mm;margin:0 auto 16px;box-shadow:0 1px 5px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:8px}
+.doc .ph{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #111;padding-bottom:6px;align-items:flex-end}
+.doc .ph b{font-size:16px;display:block;font-weight:600}
+.doc .ph span{font-size:11px;color:#444}
+.doc .meta{font-size:11px;text-align:right;line-height:1.5}
+.doc table{width:100%;border-collapse:collapse}
+.doc th,.doc td{border:1px solid #444;padding:3px 5px;vertical-align:top;text-align:left;color:#111}
+.doc th{background:#ececec;font-weight:600;font-size:11px}
+.doc td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.doc td.c{text-align:center}
+.doc tr.blank td{height:26px}
+.doc .warn{color:#b00000;font-weight:600}
+.doc h4{margin:8px 0 2px;font-size:13px;font-weight:600}
+.doc dl{display:grid;grid-template-columns:max-content 1fr max-content 1fr;gap:5px 14px;margin:0}
+.doc dt{color:#444}.doc dd{margin:0;border-bottom:1px dotted #999;min-height:1.4em}
+.doc .sign{margin-top:auto;display:flex;justify-content:flex-end;gap:48px;padding-top:22px}
+.doc .box{display:inline-block;width:11px;height:11px;border:1px solid #111;margin-right:3px;vertical-align:-1px;text-align:center;line-height:10px;font-size:10px}
+.doc .note{font-size:10.5px;color:#444}`;
+function docPage(title,sub,inner){
+  const g=S.gap;
+  return `<section class="page"><header class="ph"><div><b>${title}</b><span>${sub||'ตามมาตรฐาน มกษ. 9001-2564 การปฏิบัติทางการเกษตรที่ดีสำหรับพืช · พืช: ทุเรียน'}</span></div>
+  <div class="meta">เกษตรกร: ${esc(g.farmer||'................................')} &nbsp; ทะเบียนเกษตรกร: ${esc(g.farmerReg||'..............')}<br>เลขที่ GAP: ${esc(g.gapCode||'..............')} &nbsp; ช่วงบันทึก: ${fmtLong(UI.gFrom)} – ${fmtLong(UI.gTo)}</div></header>
+  ${inner}<div class="sign"><span>ลงชื่อ .......................................... ผู้บันทึก</span><span>วันที่ ........./........./.........</span></div></section>`;
+}
+const fmtLong=s=>s?pd(s).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}):'';
+function tbl(head,rows,blankN){
+  const b=UI.blank?Array(blankN??8).fill(`<tr class="blank">${head.map(()=>'<td></td>').join('')}</tr>`).join(''):'';
+  return `<table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}${!rows.length&&!b?`<tr><td colspan="${head.length}" class="c note">ไม่มีรายการในช่วงนี้</td></tr>`:''}${b}</tbody></table>`;
+}
+const td=(v,c='')=>`<td class="${c}">${esc(v??'')}</td>`;
+function where(x){const c=treeCode(x.treeId);return plotName(x.plotId)+(c?' / '+c:'')}
+function gapDoc(){
+  const D=gapData(), g=S.gap, sec=UI.gSec, P=[];
+  if(sec.has('profile')){
+    const vars=p=>{const m={};S.trees.filter(t=>t.plotId===p.id&&t.health!=='dead').forEach(t=>m[t.variety]=(m[t.variety]||0)+1);return Object.entries(m).map(([k,v])=>k+' '+v).join(', ')};
+    P.push(docPage('ข้อมูลเกษตรกรและแปลงปลูก','',`<dl>
+      <dt>ชื่อ-สกุล</dt><dd>${esc(g.farmer)}</dd><dt>โทรศัพท์</dt><dd>${esc(g.phone)}</dd>
+      <dt>ชื่อสวน</dt><dd>${esc(S.settings.orchardName)}</dd><dt>พิกัด GPS</dt><dd>${esc(g.gps)}</dd>
+      <dt>ที่ตั้งแปลง</dt><dd style="grid-column:2/-1">${esc(g.address)}</dd>
+      <dt>พื้นที่รวม</dt><dd>${kg(totalRai())} ไร่ · ${S.trees.filter(t=>t.health!=='dead').length} ต้น</dd><dt>แหล่งน้ำ</dt><dd>${esc(g.water)}</dd>
+      <dt>วิเคราะห์น้ำล่าสุด</dt><dd>${fmtLong(g.waterTest)}</dd><dt>วิเคราะห์ดินล่าสุด</dt><dd>${fmtLong(g.soilTest)}</dd>
+      <dt>ประวัติการใช้พื้นที่</dt><dd style="grid-column:2/-1">${esc(g.landHistory)}</dd>
+      <dt>ความเสี่ยงและการป้องกัน</dt><dd style="grid-column:2/-1">${esc(g.risk)}</dd>
+      <dt>ที่เก็บสารเคมี/อุปกรณ์</dt><dd style="grid-column:2/-1">${esc(g.chemStore)}</dd></dl>
+      <h4>รายละเอียดแปลงปลูก</h4>`+tbl(['รหัสแปลง','ชื่อแปลง','พื้นที่ (ไร่)','จำนวนต้น','พันธุ์','หมายเหตุ'],S.plots.map(p=>`<tr>${td(p.code)}${td(p.name)}${td(p.areaRai,'n')}${td(S.trees.filter(t=>t.plotId===p.id&&t.health!=='dead').length,'n')}${td(vars(p))}${td(p.note)}</tr>`),UI.blank?3:0)));
+  }
+  if(sec.has('spray')) P.push(docPage('แบบบันทึกการใช้วัตถุอันตรายทางการเกษตร','',tbl(['วันที่','แปลง','ศัตรูพืชเป้าหมาย','ชื่อการค้า','สารสำคัญ (ชื่อสามัญ)','อัตราที่ใช้','ปริมาณรวม','วิธีใช้','ระยะเว้น (วัน)','เก็บเกี่ยวได้ตั้งแต่','ผู้ปฏิบัติงาน'],
+    D.spray.map(t=>`<tr>${td(fmtD(t.date),'n')}${td(plotName(t.plotId))}${td(t.target)}<td class="${isBanned(t)?'warn':''}">${esc(t.product)}${isBanned(t)?' (ห้ามใช้)':''}</td>${td(t.ai)}${td(t.rate)}${td(t.qtyUsed)}${td(t.method)}${td(t.phi,'n')}${td(+t.phi>0?fmtD(addDays(t.date,+t.phi)):'','n')}${td(t.operator)}</tr>`))+
+    `<p class="note">ใช้เฉพาะวัตถุอันตรายที่ขึ้นทะเบียนกับกรมวิชาการเกษตร ตามอัตราและคำแนะนำบนฉลาก และเว้นระยะก่อนเก็บเกี่ยวตามฉลาก</p>`));
+  if(sec.has('fert')) P.push(docPage('แบบบันทึกการใช้ปุ๋ยและสารปรับปรุงดิน','',tbl(['วันที่','แปลง','ชนิด / สูตรปุ๋ย','อัตราที่ใช้','ปริมาณรวม','วิธีใช้','ผู้ปฏิบัติงาน','หมายเหตุ'],
+    D.fert.map(t=>`<tr>${td(fmtD(t.date),'n')}${td(plotName(t.plotId))}${td(t.product||t.title)}${td(t.rate)}${td(t.qtyUsed)}${td(t.method)}${td(t.operator)}${td(t.detail)}</tr>`))));
+  if(sec.has('other')) P.push(docPage('บันทึกการปฏิบัติงานดูแลสวน','',tbl(['วันที่','แปลง','ประเภทงาน','งาน','ผู้ปฏิบัติงาน','หมายเหตุ'],
+    D.other.map(t=>`<tr>${td(fmtD(t.date),'n')}${td(plotName(t.plotId))}${td((TASKT[t.type]||TASKT.check)[0])}${td(t.title)}${td(t.operator)}${td(t.detail)}</tr>`))));
+  if(sec.has('pest')) P.push(docPage('แบบบันทึกการสำรวจศัตรูพืชและการแก้ไขปัญหา','',tbl(['วันที่พบ','แปลง / ต้น','ปัญหาที่พบ','อาการ','ระดับ','การจัดการ','ผลการแก้ไข'],
+    D.pest.map(p=>`<tr>${td(fmtD(p.date),'n')}${td(where(p))}${td(p.problem)}${td(p.symptom)}${td((SEV[p.severity]||SEV.mid)[0])}${td(p.treatment)}${td(p.status==='closed'?'หายแล้ว':'กำลังจัดการ')}</tr>`))));
+  if(sec.has('buy')) P.push(docPage('แบบบันทึกการซื้อปัจจัยการผลิต (ปุ๋ยและสารเคมี)','',tbl(['วันที่ซื้อ','หมวด','รายการ','จำนวน','หน่วย','ร้านค้า / แหล่งที่ซื้อ','จำนวนเงิน (บาท)'],
+    D.buy.map(f=>`<tr>${td(fmtD(f.date),'n')}${td(f.cat)}${td(f.item)}${td(f.qty,'n')}${td(f.unit)}${td(f.party)}${td(baht(f.amount),'n')}</tr>`))));
+  if(sec.has('harvest')) P.push(docPage('แบบบันทึกการเก็บเกี่ยวและการจำหน่ายผลผลิต','',tbl(['วันที่เก็บ','รหัสล็อต','แปลง / ต้น','พันธุ์','วันดอกบาน','อายุผล (วัน)','น้ำหนักเนื้อแห้ง %','เกรด A (กก.)','เกรด B (กก.)','ตกเกรด (กก.)','รวม (กก.)','ผู้ซื้อ / ล้ง'],
+    D.harvest.map(b=>{const pc=phiConflict(b);return `<tr>${td(fmtD(b.harvestDate),'n')}${td(b.lot)}${td(where(b))}${td(bVariety(b))}${td(fmtD(b.bloomDate),'n')}${td(b.bloomDate?diff(b.bloomDate,b.harvestDate):'','n')}${td(b.dryMatter,'n')}${td(b.kgA,'n')}${td(b.kgB,'n')}${td(b.kgC,'n')}${td(kg((+b.kgA||0)+(+b.kgB||0)+(+b.kgC||0)),'n')}<td>${esc(b.buyer)}${pc?'<br><span class="warn">เก็บก่อนพ้นระยะเว้นสาร</span>':''}</td></tr>`}))+
+    (D.sale.length?`<h4>รายการจำหน่าย</h4>`+tbl(['วันที่','รายการ','จำนวน','หน่วย','ราคาต่อหน่วย','ผู้ซื้อ','จำนวนเงิน (บาท)'],D.sale.map(f=>`<tr>${td(fmtD(f.date),'n')}${td(f.item)}${td(f.qty,'n')}${td(f.unit)}${td(f.unitPrice,'n')}${td(f.party)}${td(baht(f.amount),'n')}</tr>`),UI.blank?3:0):'')));
+  if(sec.has('train')) P.push(docPage('บันทึกการฝึกอบรมของผู้ปฏิบัติงาน','',tbl(['วันที่','ผู้เข้าอบรม','หัวข้อ','ผู้จัด / วิทยากร','หมายเหตุ'],
+    S.trainings.slice().sort(byDate('date')).map(t=>`<tr>${td(fmtD(t.date),'n')}${td(t.person)}${td(t.topic)}${td(t.org)}${td(t.note)}</tr>`))));
+  if(sec.has('check')) P.push(docPage('แบบประเมินตนเองตามข้อกำหนด มกษ. 9001-2564','',
+    `<p class="note" style="margin:0">วันที่ประเมิน: ${fmtLong(g.reviewDate)||'................'} &nbsp; ผู้ประเมิน: ${esc(g.reviewer||'................................')}</p>`+
+    tbl(['ข้อ','ข้อกำหนด','ประเด็นที่ตรวจ','ผลการประเมิน'],GAPCHK.map((c,i)=>`<tr>${td(i+1,'c')}${td(c[0])}${td(c[1])}<td style="white-space:nowrap">${Object.entries(CHK).map(([k,v])=>`<span class="box">${g['c'+i]===k?'✓':''}</span>${v[0]}`).join('<br>')}</td></tr>`),0)+
+    `<h4>สิ่งที่ต้องปรับปรุงและกำหนดเสร็จ</h4><div style="border:1px solid #444;min-height:60px;padding:6px;white-space:pre-wrap">${esc(g.fixNote)}</div>`));
+  return P.join('');
+}
+function vGap(){
+  const D=gapData(), C=gapChecks(D), y=new Date().getFullYear();
+  const st={ok:['พร้อม','p-ok','var(--ok)'],warn:['ควรเพิ่ม','p-warn','var(--warn)'],bad:['ต้องแก้','p-bad','var(--bad)']};
+  const nOk=C.filter(c=>c.st==='ok').length;
+  return header('เอกสาร GAP','บันทึกตาม มกษ. 9001-2564 สำหรับยื่นขอหรือต่ออายุใบรับรอง')+
+  `<div class="kpis"><div class="kpi hl"><b>${nOk}/${C.length}</b><span>รายการตรวจความพร้อมที่ผ่าน</span></div>
+   <div class="kpi"><b>${D.spray.length}</b><span>บันทึกการใช้สาร</span></div><div class="kpi"><b>${D.fert.length}</b><span>บันทึกการใช้ปุ๋ย</span></div><div class="kpi"><b>${D.harvest.length}</b><span>ล็อตเก็บเกี่ยว</span></div></div>
+  <div class="grid2">
+  <section class="panel checks"><header><h2>ตรวจความพร้อม</h2><div class="toolbar"><button class="btn sm" data-act="gapform" data-f="gap">ข้อมูลฟาร์ม</button><button class="btn sm" data-act="gapform" data-f="gapcheck">ประเมินตนเอง</button></div></header>
+   <div class="list">${C.map(c=>`<div class="row"><span class="stripe" style="background:${st[c.st][2]}"></span><div class="main"><div class="t">${c.t}</div><div class="s">${c.d}</div></div><div class="r" style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="pill ${st[c.st][1]}">${st[c.st][0]}</span>${c.act}</div></div>`).join('')}</div></section>
+  <section class="panel"><header><h2>พิมพ์แบบบันทึก</h2></header>
+   <div class="toolbar"><label class="note" for="gFrom">ตั้งแต่</label><input type="date" id="gFrom" value="${UI.gFrom}"><label class="note" for="gTo">ถึง</label><input type="date" id="gTo" value="${UI.gTo}">
+    <button class="btn sm" data-act="grange" data-y="${y}">ปี ${BE(y)}</button><button class="btn sm" data-act="grange" data-y="${y-1}">ปี ${BE(y-1)}</button></div>
+   <div class="secs">${SECS.map(([k,l])=>`<label><input type="checkbox" data-sec="${k}" ${UI.gSec.has(k)?'checked':''}> ${l}</label>`).join('')}</div>
+   <label class="secs"><span><input type="checkbox" id="gBlank" ${UI.blank?'checked':''}> เพิ่มบรรทัดว่างท้ายตาราง สำหรับเขียนด้วยมือในสวน</span></label>
+   <div class="toolbar"><a class="btn pri" href="${printUrl()}" target="_blank" rel="noopener">เปิดหน้าพิมพ์</a><button class="btn" data-act="add" data-col="trainings">+ บันทึกการอบรม</button></div>
+   <p class="note" style="margin:0">หน้าพิมพ์จะเปิดในแท็บใหม่ กดปุ่ม "พิมพ์" หรือเมนูพิมพ์ของเบราว์เซอร์ เลือกกระดาษ A4 แนวนอน หรือบันทึกเป็น PDF</p>
+   ${S.trainings.length?`<div class="list">${S.trainings.slice().sort(byDate('date')).reverse().slice(0,4).map(t=>`<div class="row" data-act="edit" data-col="trainings" data-id="${t.id}"><div class="main"><div class="t">${esc(t.topic)}${exTag(t)}</div><div class="s">${esc(t.person)}${t.org?' · '+esc(t.org):''}</div></div><div class="r num note">${fmtD(t.date)}</div></div>`).join('')}</div>`:''}
+  </section></div>
+  <section class="panel"><header><h2>ตัวอย่างเอกสาร</h2><span class="note">${UI.gSec.size} หมวด · หน้าละหนึ่งแบบบันทึก</span></header>
+   <div class="docwrap"><div class="doc">${gapDoc()}</div></div></section>`;
+}
+const printUrl=()=>`./?page=print&from=${UI.gFrom}&to=${UI.gTo}&sec=${[...UI.gSec].join(',')}&blank=${UI.blank?1:0}`;
+
+/* ---------- Dashboard ---------- */
+let CH=[];
+const MTH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const kgOf=b=>(+b.kgA||0)+(+b.kgB||0)+(+b.kgC||0);
+function dashData(y){
+  const ys=String(y);
+  const fy=finYear(y);
+  const inc=sum(fy.filter(f=>f.kind==='in'),f=>f.amount), out=sum(fy.filter(f=>f.kind!=='in'),f=>f.amount);
+  const har=S.blooms.filter(b=>b.status==='done'&&(b.harvestDate||'').startsWith(ys));
+  const kgT=sum(har,kgOf), kgA=sum(har,b=>b.kgA);
+  const sale=fy.filter(f=>f.kind==='in'&&f.cat==='ขายทุเรียน'&&/กก|kg/i.test(f.unit||'')&&+f.qty>0);
+  const price=sum(sale,f=>f.qty)?sum(sale,f=>f.amount)/sum(sale,f=>f.qty):null;
+  const mIn=Array(12).fill(0),mOut=Array(12).fill(0),mA=Array(12).fill(0),mB=Array(12).fill(0),mC=Array(12).fill(0);
+  fy.forEach(f=>{const m=+f.date.slice(5,7)-1;(f.kind==='in'?mIn:mOut)[m]+=+f.amount||0});
+  har.forEach(b=>{const m=+b.harvestDate.slice(5,7)-1;mA[m]+=+b.kgA||0;mB[m]+=+b.kgB||0;mC[m]+=+b.kgC||0});
+  let run_=0;const cum=mIn.map((v,i)=>run_+=v-mOut[i]);
+  const cats=EXP.map(c=>[c,sum(fy.filter(f=>f.kind!=='in'&&f.cat===c),f=>f.amount)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
+  const pests={};S.pests.filter(p=>(p.date||'').startsWith(ys)).forEach(p=>pests[p.problem]=(pests[p.problem]||0)+1);
+  return {fy,inc,out,har,kgT,kgA,price,mIn,mOut,mA,mB,mC,cum,cats,pests:Object.entries(pests).sort((a,b)=>b[1]-a[1]).slice(0,8)};
+}
+function vDash(){
+  const y=UI.dy, D=dashData(y), rai=totalRai(), t=today();
+  const years=[...new Set([new Date().getFullYear(),...S.finance.map(f=>+String(f.date).slice(0,4)),...S.blooms.filter(b=>b.harvestDate).map(b=>+b.harvestDate.slice(0,4))].filter(Boolean))].sort((a,b)=>b-a);
+  const live=S.trees.filter(x=>x.health!=='dead'), care=S.trees.filter(x=>x.health==='sick'||x.health==='watch').length;
+  const soon=S.blooms.filter(b=>(b.status||'dev')==='dev'&&b.bloomDate&&diff(t,dueOf(b))<=60).sort((a,b)=>dueOf(a).localeCompare(dueOf(b)));
+  const plotRows=S.plots.map(p=>{
+    const hv=D.har.filter(b=>b.plotId===p.id), kgP=sum(hv,kgOf), aP=sum(hv,b=>b.kgA);
+    const cost=sum(D.fy.filter(f=>f.kind!=='in'&&f.plotId===p.id),f=>f.amount);
+    return `<tr><td>${esc(p.name)}</td><td class="num">${p.areaRai?kg(p.areaRai):'—'}</td><td class="num">${S.trees.filter(x=>x.plotId===p.id&&x.health!=='dead').length}</td><td class="num">${kg(kgP)}</td><td class="num">${p.areaRai&&kgP?kg(kgP/p.areaRai):'—'}</td><td class="num">${kgP?Math.round(aP/kgP*100)+'%':'—'}</td><td class="num">${cost?baht(cost):'—'}</td></tr>`;
+  }).join('');
+  const shared=sum(D.fy.filter(f=>f.kind!=='in'&&!f.plotId),f=>f.amount);
+  return header('แดชบอร์ด',`ภาพรวมผลผลิต การเงิน และสุขภาพสวน ปี ${BE(y)}`,
+    `<div class="seg" role="group" aria-label="เลือกปี">${years.slice(0,3).map(v=>`<button data-act="dy" data-v="${v}" aria-pressed="${v===y}">${BE(v)}</button>`).join('')}</div>`)+
+  `<div class="kpis6">
+    <div class="kpi hl"><b>${kg(D.kgT)}</b><span>ผลผลิต (กก.)${rai?` · ${kg(D.kgT/rai)} กก./ไร่`:''}</span></div>
+    <div class="kpi"><b>${D.kgT?Math.round(D.kgA/D.kgT*100):0}%</b><span>สัดส่วนเกรด A</span></div>
+    <div class="kpi"><b style="color:var(--ok)">${baht(D.inc)}</b><span>รายรับ (บาท)</span></div>
+    <div class="kpi"><b>${baht(D.inc-D.out)}</b><span>กำไรสุทธิ (บาท)${rai?` · ${baht((D.inc-D.out)/rai)}/ไร่`:''}</span></div>
+    <div class="kpi"><b>${D.kgT?baht(D.out/D.kgT):'—'}</b><span>ต้นทุนต่อ กก.${D.price?` · ขายเฉลี่ย ${baht(D.price)}`:''}</span></div>
+    <div class="kpi"><b>${live.length}</b><span>ต้นที่เลี้ยงอยู่${care?` · <span style="color:var(--warn)">ดูแล ${care}</span>`:''}</span></div>
+  </div>
+  <div class="dgrid">
+    <section class="panel"><header><h2>รายรับ-รายจ่ายรายเดือน</h2></header><div class="cbox"><canvas id="c_money" aria-label="กราฟรายรับรายจ่ายรายเดือน"></canvas></div></section>
+    <section class="panel"><header><h2>ผลผลิตรายเดือนแยกเกรด</h2></header><div class="cbox"><canvas id="c_yield" aria-label="กราฟผลผลิตรายเดือน"></canvas></div></section>
+    <section class="panel"><header><h2>ต้นทุนแยกหมวด</h2></header><div class="cbox"><canvas id="c_cost" aria-label="กราฟต้นทุนแยกหมวด"></canvas></div></section>
+    <section class="panel"><header><h2>สุขภาพต้นแยกแปลง</h2></header><div class="cbox"><canvas id="c_health" aria-label="กราฟสุขภาพต้นแยกแปลง"></canvas></div></section>
+    <section class="panel"><header><h2>ความกว้างทรงพุ่มเฉลี่ย (ม.)</h2></header><div class="cbox"><canvas id="c_growth" aria-label="กราฟทรงพุ่มเฉลี่ยแยกแปลง"></canvas></div></section>
+    <section class="panel"><header><h2>โรคและแมลงที่พบปี ${BE(y)}</h2></header><div class="cbox"><canvas id="c_pest" aria-label="กราฟโรคและแมลง"></canvas></div></section>
+  </div>
+  <section class="panel"><header><h2>ผลผลิตและต้นทุนแยกแปลง ปี ${BE(y)}</h2></header>
+   <div class="tblwrap"><table class="dt"><thead><tr><th>แปลง</th><th>ไร่</th><th>ต้น</th><th>ผลผลิต (กก.)</th><th>กก./ไร่</th><th>เกรด A</th><th>ต้นทุนระบุแปลง (บาท)</th></tr></thead>
+   <tbody>${plotRows||'<tr><td colspan="7" class="note">ยังไม่มีแปลง</td></tr>'}${shared?`<tr><td>ส่วนกลาง / ทุกแปลง</td><td></td><td></td><td></td><td></td><td></td><td class="num">${baht(shared)}</td></tr>`:''}</tbody></table></div></section>
+  <section class="panel"><header><h2>ถึงวันตัดใน 60 วัน</h2><button class="btn sm" data-act="tab" data-v="harvest">ดอก-ผลทั้งหมด</button></header>
+   <div class="list">${soon.length?soon.map(bloomRow).join(''):'<div class="empty">ไม่มีชุดผลที่ถึงวันตัดใน 60 วัน</div>'}</div></section>`;
+}
+function drawCharts(){
+  if(!window.Chart)return;
+  const cs=getComputedStyle(document.documentElement), tk=n=>cs.getPropertyValue(n).trim();
+  Chart.defaults.font.family=tk('--f-body')||'sans-serif'; Chart.defaults.color=tk('--muted'); Chart.defaults.borderColor=tk('--line');
+  const D=dashData(UI.dy), num=v=>Number(v).toLocaleString('th-TH',{maximumFractionDigits:1});
+  const base=(extra={})=>Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>`${c.dataset.label?c.dataset.label+': ':''}${num(c.parsed.y??c.parsed.x)}`}}},
+    scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{callback:v=>num(v)}}}},extra);
+  const mk=(id,cfg)=>{const el=document.getElementById(id);if(el)CH.push(new Chart(el,cfg))};
+  const empty=(id,msg)=>{const el=document.getElementById(id);if(el)el.parentElement.innerHTML=`<div class="empty" style="display:grid;place-items:center;height:100%">${msg}</div>`};
+  if(D.fy.length) mk('c_money',{type:'bar',data:{labels:MTH,datasets:[
+    {label:'รายรับ',data:D.mIn,backgroundColor:tk('--ok'),borderRadius:3},
+    {label:'รายจ่าย',data:D.mOut,backgroundColor:tk('--bad'),borderRadius:3},
+    {label:'กำไรสะสม',data:D.cum,type:'line',borderColor:tk('--gold'),backgroundColor:tk('--gold'),pointRadius:2,tension:.25}]},options:base()});
+  else empty('c_money','ยังไม่มีรายการบัญชีในปีนี้');
+  if(D.kgT) mk('c_yield',{type:'bar',data:{labels:MTH,datasets:[
+    {label:'เกรด A',data:D.mA,backgroundColor:tk('--ok')},{label:'เกรด B',data:D.mB,backgroundColor:tk('--gold')},{label:'ตกเกรด',data:D.mC,backgroundColor:tk('--muted')}]},
+    options:base({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,title:{display:true,text:'กก.'}}}})});
+  else empty('c_yield','ยังไม่มีการเก็บเกี่ยวในปีนี้');
+  if(D.cats.length) mk('c_cost',{type:'bar',data:{labels:D.cats.map(c=>c[0]),datasets:[{label:'บาท',data:D.cats.map(c=>c[1]),backgroundColor:tk('--accent'),borderRadius:3}]},
+    options:base({indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>num(c.parsed.x)+' บาท'}}},scales:{x:{beginAtZero:true,ticks:{callback:v=>num(v)}},y:{grid:{display:false}}}})});
+  else empty('c_cost','ยังไม่มีรายจ่ายในปีนี้');
+  if(S.plots.length&&S.trees.length) mk('c_health',{type:'bar',data:{labels:S.plots.map(p=>p.name),datasets:Object.entries(HEALTH).map(([k,v])=>({label:v[0],data:S.plots.map(p=>S.trees.filter(t=>t.plotId===p.id&&(t.health||'ok')===k).length),backgroundColor:tk(v[2].slice(4,-1))}))},
+    options:base({indexAxis:'y',scales:{x:{stacked:true,beginAtZero:true,ticks:{precision:0}},y:{stacked:true,grid:{display:false}}}})});
+  else empty('c_health','ยังไม่มีต้นในทะเบียน');
+  const logs=S.treelogs.filter(l=>l.canopy!=null&&l.canopy!==''&&l.date);
+  if(logs.length){
+    const months=[...new Set(logs.map(l=>l.date.slice(0,7)))].sort();
+    const pal=[tk('--accent'),tk('--gold'),tk('--info'),tk('--t-spray'),tk('--t-prune'),tk('--bad')];
+    const ds=S.plots.map((p,i)=>{const ids=new Set(S.trees.filter(t=>t.plotId===p.id).map(t=>t.id));
+      const data=months.map(m=>{const L=logs.filter(l=>ids.has(l.treeId)&&l.date.startsWith(m));return L.length?Math.round(sum(L,l=>l.canopy)/L.length*10)/10:null});
+      return {label:p.name,data,borderColor:pal[i%pal.length],backgroundColor:pal[i%pal.length],spanGaps:true,tension:.25,pointRadius:3};}).filter(d=>d.data.some(v=>v!=null));
+    mk('c_growth',{type:'line',data:{labels:months.map(m=>MTH[+m.slice(5)-1]+' '+String(BE(+m.slice(0,4))).slice(2)),datasets:ds},options:base()});
+  } else empty('c_growth','ยังไม่มีการวัดทรงพุ่ม');
+  if(D.pests.length) mk('c_pest',{type:'bar',data:{labels:D.pests.map(p=>p[0].replace(/ \(.*\)/,'')),datasets:[{label:'ครั้ง',data:D.pests.map(p=>p[1]),backgroundColor:tk('--bad'),borderRadius:3}]},
+    options:base({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}},y:{grid:{display:false}}}})});
+  else empty('c_pest','ไม่พบปัญหาในปีนี้');
+}
+function vMore(){
+  return header('เมนู')+`<div class="menu">${TABS.filter(t=>!BOTTOM.includes(t[0])).map(([k,l,i])=>`<button class="mitem" data-act="tab" data-v="${k}">${svg(i)}<span>${l}</span></button>`).join('')}
+   <button class="mitem" data-act="settings">${svg('gear')}<span>ตั้งค่า</span></button>
+   <a class="mitem" href="${ENV.sheetUrl}" target="_blank" rel="noopener">${svg('sheet')}<span>เปิด Google Sheet</span></a></div>
+  <section class="panel"><h2>ติดตั้งเป็นแอปบนมือถือ</h2><div class="toolbar" id="installBox" hidden><button class="btn pri" id="installBtn">ติดตั้งแอป</button></div>
+   <p style="margin:0" class="note">Android (Chrome): แตะเมนู ⋮ แล้วเลือก "เพิ่มลงในหน้าจอหลัก"<br>iPhone (Safari): แตะปุ่มแชร์ แล้วเลือก "เพิ่มไปยังหน้าจอโฮม"</p>
+   <div class="toolbar"><button class="btn sm" id="resetApi">เปลี่ยน URL / คีย์การเชื่อมต่อ</button></div>
+   <p style="margin:0" class="note">ถ้าสัญญาณหลุดระหว่างบันทึก ข้อมูลจะเก็บไว้ในเครื่องและส่งขึ้น Sheet ให้เองเมื่อกลับมามีสัญญาณ ส่วนการอัปโหลดรูปต้องมีสัญญาณ</p></section>`;
+}
+
+
+function vSetup(){
+  return `<div class="setup"><div class="brand"><small>ตั้งค่าครั้งแรก</small><h1>เชื่อมต่อกับ Google Sheet</h1></div>
+  <section class="panel"><p style="margin:0">เปิด Google Sheet ของสวน → เมนู <b>สมุดสวน → แสดงลิงก์และคีย์แอป</b> แล้วคัดลอกมาใส่ด้านล่าง</p>
+   <form id="setupF" style="display:flex;flex-direction:column;gap:12px">
+    <div class="fld"><label for="s_url">URL ของเว็บแอป</label><input id="s_url" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(API.url)}" autocomplete="off" inputmode="url"></div>
+    <div class="fld"><label for="s_key">คีย์แอป</label><input id="s_key" placeholder="คีย์ 24 ตัวอักษร" value="${esc(API.key)}" autocomplete="off"></div>
+    <div class="toolbar"><button class="btn pri" id="s_go">เชื่อมต่อ</button></div>
+    <p class="note" id="s_msg" style="margin:0">${window.__lastErr?esc(window.__lastErr):''}</p></form></section>
+  <p class="note">ข้อมูลทั้งหมดเก็บใน Google Sheet ของคุณ แอปนี้แค่อ่านและบันทึกผ่านคีย์ที่ตั้งไว้ ถ้าคีย์หลุด ให้สร้างคีย์ใหม่จากเมนูใน Sheet</p></div>`;
+}
+function bindSetup(){
+  const f=$('#setupF'); if(!f)return;
+  f.onsubmit=async e=>{e.preventDefault();
+    const url=$('#s_url').value.trim().replace(/\/(dev|exec)?\/?$/,m=>m.includes('dev')?'/exec':'/exec'), key=$('#s_key').value.trim();
+    if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)){$('#s_msg').textContent='URL ต้องเป็นลิงก์เว็บแอปของ Apps Script ที่ลงท้ายด้วย /exec';return}
+    if(!key){$('#s_msg').textContent='กรุณาใส่คีย์แอป';return}
+    $('#s_go').disabled=true;$('#s_msg').textContent='กำลังทดสอบการเชื่อมต่อ…';
+    API.url=url;API.key=key;
+    try{ await run('ping'); try{localStorage.setItem('durian.api',JSON.stringify(API))}catch(e){} window.__lastErr=''; mode='loading'; render(); load(); }
+    catch(err){ $('#s_go').disabled=false; $('#s_msg').textContent='เชื่อมต่อไม่สำเร็จ: '+String(err&&err.message||err); API.url='';API.key=''; }
+  };
+}
+function resetApi(){ try{localStorage.removeItem('durian.api');localStorage.removeItem('durian.cache');localStorage.removeItem('durian.q')}catch(e){} API.url='';API.key='';Q=[];window.__lastErr='';mode='setup';render(); }
+const VIEWS={home:vHome,dash:vDash,trees:vTrees,cal:vCal,harvest:vHarvest,pest:vPest,money:vMoney,gap:vGap,more:vMore};
+function navHTML(side){
+  const b=(k,l,i,cur)=>`<button class="tab" data-act="tab" data-v="${k}" aria-current="${cur}">${svg(i)}<span>${l}</span></button>`;
+  if(side) return `<div class="logo">สมุดสวนทุเรียน</div>`+TABS.map(([k,l,i])=>b(k,l,i,UI.view===k)).join('')+`<a class="tab" href="${ENV.sheetUrl}" target="_blank" rel="noopener" style="text-decoration:none">${svg('sheet')}<span>Google Sheet</span></a>`;
+  return TABS.filter(t=>BOTTOM.includes(t[0])).map(([k,l,i])=>b(k,l,i,UI.view===k)).join('')+b('more','เมนู','more',!BOTTOM.includes(UI.view));
+}
+function render(){
+  $('#side').innerHTML=navHTML(true);$('#bottom').innerHTML=navHTML(false);
+  if(PRINT){ if(mode==='loading'){$('#view').innerHTML='<div class="skel">กำลังโหลดข้อมูล…</div>';return}
+    $('#view').innerHTML=`<div class="pbar"><span>แบบบันทึก GAP ทุเรียน · ${esc(S.gap.farmer||S.settings.orchardName||'')} · ${fmtLong(UI.gFrom)} – ${fmtLong(UI.gTo)} · กระดาษ A4 แนวนอน</span><button data-act="print">พิมพ์</button></div><div class="doc">${gapDoc()}</div>`; return; }
+  if(mode==='setup'){ $('#fab').hidden=true; $('#view').innerHTML=vSetup(); bindSetup(); return; }
+  if(mode==='loading'){return}
+  if(!VIEWS[UI.view])UI.view='home';
+  let html=VIEWS[UI.view]();
+  html=`<div class="sync" id="sync" hidden></div>`+(mode==='error'?`<div class="banner"><span>เชื่อมต่อ Google Sheet ไม่ได้: ${esc(window.__lastErr||'')}</span><button class="btn sm" data-act="reload">ลองใหม่</button></div>`:'')+html;
+  CH.forEach(c=>{try{c.destroy()}catch(e){}});CH=[];
+  $('#view').innerHTML=html; updSync();
+  $('#fab').hidden=!FAB_COL[UI.view];
+  if(UI.view==='dash') drawCharts();
+  const cx=$('#clearEx');if(cx)cx.onclick=async()=>{if(!cx.dataset.armed){cx.dataset.armed=1;cx.textContent='กดอีกครั้งเพื่อยืนยัน';return}
+    cx.disabled=true;cx.textContent='กำลังลบ…';
+    try{const n=await run('removeExamples');COLS.forEach(c=>S[c]=S[c].filter(r=>!r.example));cache();render();toast(`ลบข้อมูลตัวอย่างแล้ว ${n} แถว`);}
+    catch(e){cx.disabled=false;cx.textContent='ลบข้อมูลตัวอย่างทั้งหมด';toast(isNet(e)?'ต้องมีสัญญาณอินเทอร์เน็ตเพื่อลบข้อมูลตัวอย่าง':'ลบไม่สำเร็จ: '+((e&&e.message)||e))}};
+  const fp=$('#fPlot');if(fp)fp.onchange=e=>{UI.plot=e.target.value;render()};
+  const fh=$('#fHealth');if(fh)fh.onchange=e=>{UI.health=e.target.value;render()};
+  const fyr=$('#fYear');if(fyr)fyr.onchange=e=>{UI.year=+e.target.value;render()};
+  const ra=$('#resetApi');if(ra)ra.onclick=()=>{if(!ra.dataset.armed){ra.dataset.armed=1;ra.textContent='กดอีกครั้งเพื่อยืนยัน (ข้อมูลใน Sheet ไม่หาย)';return}resetApi()};
+  const gf=$('#gFrom'),gt=$('#gTo');
+  if(gf)gf.onchange=e=>{if(e.target.value){UI.gFrom=e.target.value;render()}};
+  if(gt)gt.onchange=e=>{if(e.target.value){UI.gTo=e.target.value;render()}};
+  document.querySelectorAll('[data-sec]').forEach(cb=>cb.onchange=e=>{const k=e.target.dataset.sec;e.target.checked?UI.gSec.add(k):UI.gSec.delete(k);render()});
+  const gb=$('#gBlank');if(gb)gb.onchange=e=>{UI.blank=e.target.checked;render()};
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-close]')||e.target.id==='scrim'){closeModal();return}
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act;
+  if(a==='toggle'){e.stopPropagation();const x=byId('tasks',el.dataset.id);if(x)patch('tasks',x.id,{status:x.status==='done'?'todo':'done'});return}
+  if(a==='tab'){UI.view=el.dataset.v;try{localStorage.setItem('durian.view',UI.view)}catch(_){};render();window.scrollTo(0,0);return}
+  if(a==='edit'){openForm(el.dataset.col,el.dataset.id);return}
+  if(a==='tree'){openTree(el.dataset.id);return}
+  if(a==='add'){openForm(el.dataset.col);return}
+  if(a==='settings'){openSettings();return}
+  if(a==='bf'){UI.bloomF=el.dataset.v;render();return}
+  if(a==='pf'){UI.pestF=el.dataset.v;render();return}
+  if(a==='day'){UI.sel=el.dataset.d&&UI.sel!==el.dataset.d?el.dataset.d:null;render();return}
+  if(a==='cal'){const d=+el.dataset.d;if(!d){const n=new Date();UI.calY=n.getFullYear();UI.calM=n.getMonth();UI.sel=today()}else{const n=new Date(UI.calY,UI.calM+d,1);UI.calY=n.getFullYear();UI.calM=n.getMonth();UI.sel=null}render();return}
+  if(a==='gapform'){openForm(el.dataset.f);return}
+  if(a==='reload'){load(true);return}
+  if(a==='dy'){UI.dy=+el.dataset.v;render();return}
+  if(a==='grange'){UI.gFrom=el.dataset.y+'-01-01';UI.gTo=el.dataset.y+'-12-31';render();return}
+  if(a==='print'){window.print();return}
+});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(LB.length){LB=[];drawLB();return}closeModal()});
+$('#fab').onclick=()=>openForm(FAB_COL[UI.view]);
+
+/* ---------- boot ---------- */
+{const st=document.createElement('style');st.textContent=DOC_CSS;document.head.appendChild(st);}
+const getLoc=()=>Promise.resolve({parameter:Object.fromEntries(new URLSearchParams(location.search))});
+(async()=>{
+  const loc=await getLoc();
+  if(loc&&loc.parameter){ENV.params=loc.parameter;ENV.page=loc.parameter.page||'';}
+  if(!API.url||!API.key){mode='setup';render();return}
+  PRINT=ENV.page==='print';
+  if(PRINT){ const p=ENV.params||{}; if(p.from)UI.gFrom=p.from; if(p.to)UI.gTo=p.to; if(p.sec)UI.gSec=new Set(String(p.sec).split(',').filter(Boolean)); UI.blank=p.blank==='1'; document.body.classList.add('printmode'); }
+  try{const c=JSON.parse(localStorage.getItem('durian.cache')||'null'); if(c&&!PRINT){apply(c);mode='cached';}}catch(e){}
+  render();
+  load();
+})();
+setTimeout(()=>{if(mode==='loading'&&API.url){$('#view').innerHTML='<div class="panel"><h2>ยังโหลดข้อมูลจาก Google Sheet ไม่เสร็จ</h2><p class="note" style="margin:0">ครั้งแรกระบบจะสร้างแท็บและข้อมูลตัวอย่าง อาจใช้เวลาถึง 30 วินาที</p><div class="toolbar"><button class="btn" data-act="reload">ลองโหลดอีกครั้ง</button></div></div>'}},25000);
+
+window.__appReady=true;
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});}
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;const b=$('#installBox');if(b)b.hidden=false;});
+document.addEventListener('click',e=>{if(e.target.id!=='installBtn'||!deferredInstall)return;deferredInstall.prompt();deferredInstall.userChoice.finally(()=>{deferredInstall=null;const b=$('#installBox');if(b)b.hidden=true});});
+const _render=render; render=function(){_render();const b=$('#installBox');if(b&&deferredInstall)b.hidden=false;};
+})();
+</script>
+</body>
+</html>
